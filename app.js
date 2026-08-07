@@ -1763,10 +1763,15 @@ function makeReverbImpulse(ctx, duration, decay){
   return impulse;
 }
 
-/* An original ambient synth-pad swell in the spirit of mid-90s OS startup
-   chimes — a slow layered chord with a reverb tail. Not a reproduction of
-   any specific licensed startup sound (e.g. the real Windows 95 chime,
-   which is a copyrighted Brian Eno composition); this is written fresh. */
+/* An original ambient synth-pad chime in the spirit of mid-90s OS startup
+   sounds. Not a reproduction of any specific licensed startup sound (e.g.
+   the real Windows 95 chime, a copyrighted Brian Eno composition) — this
+   uses a different chord entirely, written fresh. Its overall shape (a
+   quick bright "ping" at the very top, a low pad entering just behind it,
+   a mid layer a beat later, a high shimmer arriving late and lingering
+   into a long reverb tail, ~6.5s total) is informed by spectral analysis
+   of that reference sound's timing/envelope — structural facts like pacing
+   and register, not its notes or its recording, which are never touched. */
 function playChime(){
   if(soundMuted) return;
   try{
@@ -1778,45 +1783,67 @@ function playChime(){
     master.connect(ctx.destination);
 
     var convolver = ctx.createConvolver();
-    convolver.buffer = makeReverbImpulse(ctx, 3.2, 2.4);
+    convolver.buffer = makeReverbImpulse(ctx, 4.5, 2.1);
     var wetGain = ctx.createGain();
-    wetGain.gain.value = 0.5;
+    wetGain.gain.value = 0.55;
     convolver.connect(wetGain).connect(master);
 
     var dryGain = ctx.createGain();
-    dryGain.gain.value = 0.65;
+    dryGain.gain.value = 0.6;
     dryGain.connect(master);
 
     var now = ctx.currentTime;
-    /* a warm rising chord, voices entering staggered — F add9 voicing */
-    var chord = [
-      { freq: 174.61, at: 0.00 }, /* F3 */
-      { freq: 261.63, at: 0.14 }, /* C4 */
-      { freq: 349.23, at: 0.26 }, /* F4 */
-      { freq: 440.00, at: 0.40 }, /* A4 */
-      { freq: 523.25, at: 0.54 }, /* C5 */
-      { freq: 698.46, at: 0.70 }  /* F5, a sparkle on top */
-    ];
-    chord.forEach(function(note){
+
+    /* one sustained voice: gain ramps up over `attack`, holds at `peak`
+       for `hold`, then eases out over `release` — feeds both the dry
+       mix and the reverb send. */
+    function voice(freq, start, attack, hold, release, peak, type){
+      var osc = ctx.createOscillator();
+      osc.type = type;
+      osc.frequency.value = freq;
+      var g = ctx.createGain();
+      var t0 = now + start;
+      var t1 = t0 + attack;
+      var t2 = t1 + hold;
+      var t3 = t2 + release;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(peak, t1);
+      g.gain.setValueAtTime(peak, t2);
+      g.gain.exponentialRampToValueAtTime(0.0001, t3);
+      osc.connect(g);
+      g.connect(dryGain);
+      g.connect(convolver);
+      osc.start(t0);
+      osc.stop(t3 + 0.1);
+    }
+
+    /* a bright bell-like "ping" right at the top — quick attack, quick
+       decay, the sound that opens everything else up */
+    [1568.0, 1046.5].forEach(function(freq){ /* G6, C6 */
+      voice(freq, 0.00, 0.01, 0.05, 0.55, 0.05, "sine");
+    });
+
+    /* low pad, entering just behind the ping — the warm foundation,
+       held the longest */
+    [146.83, 220.00].forEach(function(freq){ /* D3, A3 */
       [1, 1.004, 0.996].forEach(function(detune, vi){
-        var osc = ctx.createOscillator();
-        osc.type = vi === 0 ? "triangle" : "sine";
-        osc.frequency.value = note.freq * detune;
-        var g = ctx.createGain();
-        var start = now + note.at;
-        var peak = 0.05 / (vi + 1);
-        g.gain.setValueAtTime(0.0001, start);
-        g.gain.linearRampToValueAtTime(peak, start + 0.55);
-        g.gain.exponentialRampToValueAtTime(0.0001, start + 3.3);
-        osc.connect(g);
-        g.connect(dryGain);
-        g.connect(convolver);
-        osc.start(start);
-        osc.stop(start + 3.5);
+        voice(freq * detune, 0.12, 0.35, 1.2, 3.8, 0.045 / (vi + 1), vi === 0 ? "triangle" : "sine");
       });
     });
 
-    setTimeout(function(){ if(ctx.close) ctx.close(); }, 4600);
+    /* mid layer, entering a beat later and sitting on top of the pad */
+    [293.66, 369.99].forEach(function(freq){ /* D4, F#4 */
+      [1, 1.004, 0.996].forEach(function(detune, vi){
+        voice(freq * detune, 0.5, 0.5, 1.8, 3.6, 0.04 / (vi + 1), vi === 0 ? "triangle" : "sine");
+      });
+    });
+
+    /* high shimmer, arriving late and lingering into the reverb tail */
+    [587.33, 1174.66].forEach(function(freq){ /* D5, D6 */
+      voice(freq, 2.2, 0.8, 1.0, 2.4, 0.03, "sine");
+    });
+
+    setTimeout(function(){ if(ctx.close) ctx.close(); }, 6800);
   } catch(e){ /* autoplay/audio restrictions — fail silently */ }
 }
 
