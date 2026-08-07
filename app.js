@@ -170,7 +170,16 @@ var ICONS = {
     "....N...",
     ".NNNN...",
     "NNNNN...",
-    ".NNN...." ], pal:{N:"#7b2fbe"} }
+    ".NNN...." ], pal:{N:"#7b2fbe"} },
+  article: { rows:[
+    "########",
+    "#WWWWWW#",
+    "#WWWWWW#",
+    "########",
+    "#W####W#",
+    "#W####W#",
+    "#W####W#",
+    "########" ], pal:{"#":"#1a1a1a",W:"#ffffff"} }
 };
 
 function pixelSVG(id, cell){
@@ -210,6 +219,12 @@ function renderIcons(root){
    hand-duplicated copy that quietly drifts out of sync with it. */
 
 var EXPERIENCE = [
+  { icon:"trophy", role:"General Manager, Program Management & Partnerships", org:"IDSA + Design, GW", date:"Aug 2026-Present",
+    fileType:"Leadership Role", size:"Ongoing",
+    bullets:[
+      "Leading partnership strategy and deal sourcing with top design-industry players.",
+      "Building and launching new venture programs for the org from the ground up."
+    ]},
   { icon:"gear", role:"Special Projects Intern", org:"StateCraft Labs", date:"Fall 2026",
     url:"https://statecraft.ai/", fileType:"Internship", size:"1 sem",
     bullets:[
@@ -626,6 +641,7 @@ var APPS = [
   { id:"projects", title:"Projects", icon:"chart" },
   { id:"experience", title:"Experience", icon:"folder" },
   { id:"about", title:"About_Me.txt - Notepad", icon:"person" },
+  { id:"writing", title:"My Writing", icon:"article" },
   { id:"extras", title:"Extras", icon:"folder" },
   { id:"education", title:"Education.txt - Notepad", icon:"book" },
   { id:"skills", title:"Skills.ini - Notepad", icon:"gear" },
@@ -695,6 +711,9 @@ function openWindow(id){
   if(id === "resume" && !resumeTypedOnce){
     resumeTypedOnce = true;
     revealResumeText();
+  }
+  if(id === "writing" && !writingLoaded){
+    loadWritingFeed();
   }
 }
 
@@ -1095,6 +1114,7 @@ var RUN_ALIASES = {
   trophy:"trophy", trivia:"trophy", historybowl:"trophy",
   minesweeper:"minesweeper", mines:"minesweeper",
   media:"media", music:"media", mediaplayer:"media",
+  writing:"writing", substack:"writing", blog:"writing",
   bin:"bin", recycle:"bin", recyclebin:"bin"
 };
 var runOverlay = document.getElementById("run-overlay");
@@ -1589,7 +1609,7 @@ var WALLPAPERS = {
 };
 
 var WALLPAPER_KEY = "joshuaos-wallpaper";
-var currentWallpaper = "sky";
+var currentWallpaper = "teal";
 try{ var savedWp = localStorage.getItem(WALLPAPER_KEY); if(savedWp && WALLPAPERS[savedWp]) currentWallpaper = savedWp; } catch(e){}
 
 function applyWallpaper(key){
@@ -1715,27 +1735,75 @@ soundBtn.addEventListener("click", function(){
   updateSoundBtn();
 });
 
+/* short noise-burst impulse response, used to give the boot chime an
+   ambient tail — synthesized, not sampled from anywhere */
+function makeReverbImpulse(ctx, duration, decay){
+  var rate = ctx.sampleRate;
+  var length = Math.max(1, Math.floor(rate * duration));
+  var impulse = ctx.createBuffer(2, length, rate);
+  for(var c = 0; c < 2; c++){
+    var data = impulse.getChannelData(c);
+    for(var i = 0; i < length; i++){
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+  }
+  return impulse;
+}
+
+/* An original ambient synth-pad swell in the spirit of mid-90s OS startup
+   chimes — a slow layered chord with a reverb tail. Not a reproduction of
+   any specific licensed startup sound (e.g. the real Windows 95 chime,
+   which is a copyrighted Brian Eno composition); this is written fresh. */
 function playChime(){
   if(soundMuted) return;
   try{
     var Ctx = window.AudioContext || window.webkitAudioContext;
     if(!Ctx) return;
     var ctx = new Ctx();
-    var notes = [523.25, 659.25, 783.99, 1046.5]; /* C5 E5 G5 C6 */
-    notes.forEach(function(freq, i){
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = "square";
-      osc.frequency.value = freq;
-      var start = ctx.currentTime + i * 0.11;
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.12, start + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.28);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + 0.3);
+    var master = ctx.createGain();
+    master.gain.value = 0.5;
+    master.connect(ctx.destination);
+
+    var convolver = ctx.createConvolver();
+    convolver.buffer = makeReverbImpulse(ctx, 3.2, 2.4);
+    var wetGain = ctx.createGain();
+    wetGain.gain.value = 0.5;
+    convolver.connect(wetGain).connect(master);
+
+    var dryGain = ctx.createGain();
+    dryGain.gain.value = 0.65;
+    dryGain.connect(master);
+
+    var now = ctx.currentTime;
+    /* a warm rising chord, voices entering staggered — F add9 voicing */
+    var chord = [
+      { freq: 174.61, at: 0.00 }, /* F3 */
+      { freq: 261.63, at: 0.14 }, /* C4 */
+      { freq: 349.23, at: 0.26 }, /* F4 */
+      { freq: 440.00, at: 0.40 }, /* A4 */
+      { freq: 523.25, at: 0.54 }, /* C5 */
+      { freq: 698.46, at: 0.70 }  /* F5, a sparkle on top */
+    ];
+    chord.forEach(function(note){
+      [1, 1.004, 0.996].forEach(function(detune, vi){
+        var osc = ctx.createOscillator();
+        osc.type = vi === 0 ? "triangle" : "sine";
+        osc.frequency.value = note.freq * detune;
+        var g = ctx.createGain();
+        var start = now + note.at;
+        var peak = 0.05 / (vi + 1);
+        g.gain.setValueAtTime(0.0001, start);
+        g.gain.linearRampToValueAtTime(peak, start + 0.55);
+        g.gain.exponentialRampToValueAtTime(0.0001, start + 3.3);
+        osc.connect(g);
+        g.connect(dryGain);
+        g.connect(convolver);
+        osc.start(start);
+        osc.stop(start + 3.5);
+      });
     });
-    setTimeout(function(){ if(ctx.close) ctx.close(); }, 900);
+
+    setTimeout(function(){ if(ctx.close) ctx.close(); }, 4600);
   } catch(e){ /* autoplay/audio restrictions — fail silently */ }
 }
 
@@ -2148,6 +2216,85 @@ function startQuiz(){
   renderQuiz();
 }
 startQuiz();
+
+/* ============================================================
+   MY WRITING — auto-loads the latest posts from Substack's RSS
+   feed. Browsers block a direct cross-origin fetch of most RSS
+   feeds (no CORS header — they're built for feed readers, not
+   client JS), so this tries direct first, falls back to a public
+   CORS proxy, and only shows a "visit Substack directly" message
+   if both fail. Fetched once, the first time the window opens.
+   ============================================================ */
+var SUBSTACK_URL = "https://joshmetters.substack.com";
+var SUBSTACK_FEED = SUBSTACK_URL + "/feed";
+var CORS_PROXY = "https://api.allorigins.win/raw?url=";
+var writingLoaded = false;
+
+function parseSubstackRSS(xmlText){
+  var doc = new DOMParser().parseFromString(xmlText, "text/xml");
+  if(doc.querySelector("parsererror")) return null;
+  return Array.prototype.slice.call(doc.querySelectorAll("item")).map(function(el){
+    var t = el.querySelector("title"), l = el.querySelector("link"), p = el.querySelector("pubDate");
+    return {
+      title: t ? t.textContent : "Untitled",
+      link: l ? l.textContent : SUBSTACK_URL,
+      pubDate: p ? p.textContent : ""
+    };
+  });
+}
+
+function renderWritingPosts(items){
+  var list = document.getElementById("writing-list");
+  var count = document.getElementById("writing-count");
+  if(!items || !items.length){
+    list.innerHTML = '<div class="writing-status">No posts published yet on Substack &mdash; check back soon, or read directly on <a href="' + SUBSTACK_URL + '" target="_blank" rel="noopener">joshmetters.substack.com</a>.</div>';
+    count.textContent = "0 posts";
+    return;
+  }
+  list.innerHTML = "";
+  items.slice(0, 12).forEach(function(item){
+    var a = document.createElement("a");
+    a.className = "writing-post";
+    a.href = item.link;
+    a.target = "_blank";
+    a.rel = "noopener";
+    var dateStr = "";
+    var d = item.pubDate ? new Date(item.pubDate) : null;
+    if(d && !isNaN(d)) dateStr = d.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+    a.innerHTML = '<span class="writing-post-title">' + item.title + ' &#8599;</span>' + (dateStr ? '<span class="writing-post-date">' + dateStr + '</span>' : "");
+    list.appendChild(a);
+  });
+  count.textContent = items.length + " post(s)";
+}
+
+function renderWritingFallback(){
+  var list = document.getElementById("writing-list");
+  var count = document.getElementById("writing-count");
+  list.innerHTML = '<div class="writing-status">Couldn&rsquo;t load the live feed from here. Read directly on <a href="' + SUBSTACK_URL + '" target="_blank" rel="noopener">joshmetters.substack.com</a>.</div>';
+  count.textContent = "Feed unavailable";
+}
+
+function loadWritingFeed(){
+  if(writingLoaded) return;
+  writingLoaded = true;
+  fetch(SUBSTACK_FEED)
+    .then(function(r){ if(!r.ok) throw new Error("bad status"); return r.text(); })
+    .then(function(text){
+      var items = parseSubstackRSS(text);
+      if(items === null) throw new Error("parse failed");
+      renderWritingPosts(items);
+    })
+    .catch(function(){
+      fetch(CORS_PROXY + encodeURIComponent(SUBSTACK_FEED))
+        .then(function(r){ if(!r.ok) throw new Error("proxy bad status"); return r.text(); })
+        .then(function(text){
+          var items = parseSubstackRSS(text);
+          if(items === null) throw new Error("proxy parse failed");
+          renderWritingPosts(items);
+        })
+        .catch(renderWritingFallback);
+    });
+}
 
 /* ============================================================
    MEDIA PLAYER — three original chiptune loops synthesized live

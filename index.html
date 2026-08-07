@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="An interactive résumé styled as a Windows 95 desktop — built and playable, not just a screenshot of one.">
 <meta name="twitter:image" content="og-image.png">
 
-<link rel="stylesheet" href="styles.css?v=ddeed49dcc">
+<link rel="stylesheet" href="styles.css?v=b42604505b">
 </head>
 <body>
 
@@ -146,6 +146,9 @@
     <button class="icon" data-app="experience"><span class="icon-slot" data-icon="folder"></span>Experience</button>
     <button class="icon" data-app="about"><span class="icon-slot" data-icon="person"></span>About_Me.txt</button>
     <button class="icon" data-app="contact"><span class="icon-slot" data-icon="mail"></span>Contact Me.exe</button>
+    <button class="icon" data-app="writing"><span class="icon-slot" data-icon="article"></span>My Writing</button>
+    <button class="icon" data-app="media"><span class="icon-slot" data-icon="note"></span>Media Player</button>
+    <button class="icon" data-app="minesweeper"><span class="icon-slot" data-icon="bomb"></span>Minesweeper.exe</button>
     <button class="icon" data-app="extras"><span class="icon-slot" data-icon="folder"></span>Extras</button>
   </div>
 
@@ -192,6 +195,7 @@
     </div>
     <div class="win-body">
       <ul class="exp-list" id="extras-list">
+        <li><button class="extras-row" data-open="writing"><span class="icon-slot" data-icon="article"></span><span>My Writing</span></button></li>
         <li><button class="extras-row" data-open="education"><span class="icon-slot" data-icon="book"></span><span>Education.txt</span></button></li>
         <li><button class="extras-row" data-open="skills"><span class="icon-slot" data-icon="gear"></span><span>Skills.ini</span></button></li>
         <li><button class="extras-row" data-open="computer"><span class="icon-slot" data-icon="computer"></span><span>My Computer</span></button></li>
@@ -202,7 +206,7 @@
         <li><button class="extras-row" id="extras-corrupted"><span class="icon-slot" data-icon="bsod"></span><span>corrupted_file.tmp</span></button></li>
       </ul>
     </div>
-    <div class="win-statusbar"><span>8 object(s)</span></div>
+    <div class="win-statusbar"><span>9 object(s)</span></div>
     <div class="resize-handle" data-resize></div>
   </section>
 
@@ -285,6 +289,37 @@
       <ul class="exp-list" id="proj-list"></ul>
     </div>
     <div class="win-statusbar"><span id="proj-count"></span><span style="margin-left:auto;">Click a row to expand</span></div>
+    <div class="resize-handle" data-resize></div>
+  </section>
+
+  <!-- ============ WRITING ============ -->
+  <section class="win-window raised" id="win-writing" data-app="writing" style="left:150px;top:96px;width:480px;height:420px;">
+    <div class="win-titlebar" data-drag>
+      <span class="icon-slot" data-icon="article"></span>
+      <span class="win-title">My Writing</span>
+      <div class="win-controls">
+        <button class="win-btn" data-action="minimize">_</button>
+        <button class="win-btn" data-action="maximize">&#9633;</button>
+        <button class="win-btn" data-action="close">&#10005;</button>
+      </div>
+    </div>
+    <div class="win-menubar">
+      <span data-menu="view">File</span>
+      <span data-menu="view">View</span>
+      <span data-menu="help">Help</span>
+    </div>
+    <div class="win-body">
+      <div class="writing-wrap">
+        <div class="writing-header">
+          <p>Essays and notes, published on Substack.</p>
+          <a class="btn-raised" href="https://joshmetters.substack.com" target="_blank" rel="noopener">Visit Substack &#8599;</a>
+        </div>
+        <div class="writing-list" id="writing-list">
+          <div class="writing-status">Loading latest posts&hellip;</div>
+        </div>
+      </div>
+    </div>
+    <div class="win-statusbar"><span id="writing-count">Loading&hellip;</span></div>
     <div class="resize-handle" data-resize></div>
   </section>
 
@@ -658,6 +693,7 @@ Relevant coursework:
         <button class="start-item" data-open="projects"><span class="icon-slot" data-icon="chart"></span>Projects</button>
         <button class="start-item" data-open="experience"><span class="icon-slot" data-icon="folder"></span>Experience</button>
         <button class="start-item" data-open="about"><span class="icon-slot" data-icon="person"></span>About_Me.txt</button>
+        <button class="start-item" data-open="writing"><span class="icon-slot" data-icon="article"></span>My Writing</button>
         <button class="start-item" data-open="extras"><span class="icon-slot" data-icon="folder"></span>Extras</button>
       </div>
       <button class="start-item" data-open="contact"><span class="icon-slot" data-icon="mail"></span>Contact Me.exe</button>
@@ -784,6 +820,6 @@ The current build is fine — this is a decorative crash.</p>
 </div>
 
 
-<script src="app.js?v=fcc35e744f"></script>
+<script src="app.js?v=dbfdba1326"></script>
 </body>
 </html>
