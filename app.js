@@ -1793,54 +1793,95 @@ function playChime(){
     dryGain.connect(master);
 
     var now = ctx.currentTime;
+    var hasPanner = typeof ctx.createStereoPanner === "function";
 
     /* one sustained voice: gain ramps up over `attack`, holds at `peak`
        for `hold`, then eases out over `release` — feeds both the dry
-       mix and the reverb send. */
-    function voice(freq, start, attack, hold, release, peak, type){
+       mix and the reverb send. `opts` adds the texture that makes this
+       read as an analog pad rather than a plain tone: a lowpass filter
+       that opens up over the attack/hold (the "warming up" quality real
+       synth pads have), slow chorus-style pitch drift, and stereo width. */
+    function voice(freq, start, attack, hold, release, peak, type, opts){
+      opts = opts || {};
       var osc = ctx.createOscillator();
       osc.type = type;
       osc.frequency.value = freq;
-      var g = ctx.createGain();
+
       var t0 = now + start;
       var t1 = t0 + attack;
       var t2 = t1 + hold;
       var t3 = t2 + release;
+
+      var filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.Q.value = 0.6;
+      if(opts.filterFrom != null){
+        filter.frequency.setValueAtTime(opts.filterFrom, t0);
+        filter.frequency.linearRampToValueAtTime(opts.filterTo, t2);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(400, opts.filterTo * 0.55), t3);
+      } else {
+        filter.frequency.value = 9000; /* effectively bypassed, for the bright ping */
+      }
+
+      var g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t0);
       g.gain.linearRampToValueAtTime(peak, t1);
       g.gain.setValueAtTime(peak, t2);
       g.gain.exponentialRampToValueAtTime(0.0001, t3);
-      osc.connect(g);
-      g.connect(dryGain);
-      g.connect(convolver);
+
+      osc.connect(filter).connect(g);
+
+      var out = g;
+      if(hasPanner && opts.pan != null){
+        var panner = ctx.createStereoPanner();
+        panner.pan.value = opts.pan;
+        g.connect(panner);
+        out = panner;
+      }
+      out.connect(dryGain);
+      out.connect(convolver);
+
+      if(opts.chorus){
+        var lfo = ctx.createOscillator();
+        lfo.frequency.value = 0.12 + Math.random() * 0.1; /* slow, unsynced drift per voice */
+        var lfoGain = ctx.createGain();
+        lfoGain.gain.value = 3.5; /* cents of wobble — subtle, not a vibrato */
+        lfo.connect(lfoGain).connect(osc.detune);
+        lfo.start(t0);
+        lfo.stop(t3 + 0.1);
+      }
+
       osc.start(t0);
       osc.stop(t3 + 0.1);
     }
 
     /* a bright bell-like "ping" right at the top — quick attack, quick
-       decay, the sound that opens everything else up */
+       decay, no filter (kept clean), centered — the sound that opens
+       everything else up */
     [1568.0, 1046.5].forEach(function(freq){ /* G6, C6 */
-      voice(freq, 0.00, 0.01, 0.05, 0.55, 0.05, "sine");
+      voice(freq, 0.00, 0.01, 0.05, 0.55, 0.05, "sine", { pan: 0 });
     });
 
     /* low pad, entering just behind the ping — the warm foundation,
-       held the longest */
-    [146.83, 220.00].forEach(function(freq){ /* D3, A3 */
+       held the longest, filter opening slowly from muffled to full */
+    [{ f:146.83, pan:-0.35 }, { f:220.00, pan:0.35 }].forEach(function(n){ /* D3, A3 */
       [1, 1.004, 0.996].forEach(function(detune, vi){
-        voice(freq * detune, 0.12, 0.35, 1.2, 3.8, 0.045 / (vi + 1), vi === 0 ? "triangle" : "sine");
+        voice(n.f * detune, 0.12, 0.35, 1.2, 3.8, 0.045 / (vi + 1), vi === 0 ? "triangle" : "sine",
+          { pan: n.pan, chorus: true, filterFrom: 500, filterTo: 2200 });
       });
     });
 
     /* mid layer, entering a beat later and sitting on top of the pad */
-    [293.66, 369.99].forEach(function(freq){ /* D4, F#4 */
+    [{ f:293.66, pan:-0.2 }, { f:369.99, pan:0.2 }].forEach(function(n){ /* D4, F#4 */
       [1, 1.004, 0.996].forEach(function(detune, vi){
-        voice(freq * detune, 0.5, 0.5, 1.8, 3.6, 0.04 / (vi + 1), vi === 0 ? "triangle" : "sine");
+        voice(n.f * detune, 0.5, 0.5, 1.8, 3.6, 0.04 / (vi + 1), vi === 0 ? "triangle" : "sine",
+          { pan: n.pan, chorus: true, filterFrom: 800, filterTo: 3200 });
       });
     });
 
     /* high shimmer, arriving late and lingering into the reverb tail */
-    [587.33, 1174.66].forEach(function(freq){ /* D5, D6 */
-      voice(freq, 2.2, 0.8, 1.0, 2.4, 0.03, "sine");
+    [{ f:587.33, pan:-0.15 }, { f:1174.66, pan:0.15 }].forEach(function(n){ /* D5, D6 */
+      voice(n.f, 2.2, 0.8, 1.0, 2.4, 0.03, "sine", { pan: n.pan, chorus: true });
     });
 
     setTimeout(function(){ if(ctx.close) ctx.close(); }, 6800);
