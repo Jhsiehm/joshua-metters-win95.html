@@ -565,12 +565,25 @@ function typeBoot(){
   step();
 }
 
+/* Browsers refuse to play audio without a genuine user gesture. The boot
+   screen listens for a click/keypress to use as that gesture, but if it
+   auto-advances (the 2.8s timeout) before the visitor does either, the
+   chime would otherwise be lost for good. tryPlayChime() is idempotent,
+   so it's safe to also wire up as a one-time fallback on the very next
+   real interaction anywhere on the page — see the boot kickoff below. */
+var chimePlayed = false;
+function tryPlayChime(){
+  if(chimePlayed) return;
+  chimePlayed = true;
+  playChime();
+}
+
 function finishBoot(userGesture, instant){
   var boot = document.getElementById("boot-screen");
   var desktop = document.getElementById("desktop");
   if(boot.dataset.done) return;
   boot.dataset.done = "1";
-  if(userGesture) playChime();
+  if(userGesture) tryPlayChime();
   function reveal(){
     boot.hidden = true;
     desktop.hidden = false;
@@ -2590,6 +2603,12 @@ if(skipBootAnimation){
     if(!bootScreen.hidden) finishBoot(true);
   });
   setTimeout(function(){ finishBoot(false); }, 2800);
+  /* Fallback gesture: if boot auto-advances before the visitor clicks or
+     types on it, catch their very next interaction anywhere on the page
+     — an icon click, a button, a keypress — and use that instead. */
+  ["pointerdown","keydown"].forEach(function(evt){
+    document.addEventListener(evt, tryPlayChime, { once:true, passive:true });
+  });
 }
 
 /* init minesweeper board (unstarted) once desktop is ready */
