@@ -179,7 +179,18 @@ var ICONS = {
     "#W####W#",
     "#W####W#",
     "#W####W#",
-    "########" ], pal:{"#":"#1a1a1a",W:"#ffffff"} }
+    "########" ], pal:{"#":"#1a1a1a",W:"#ffffff"} },
+  /* generic "opens elsewhere" diagonal arrow, used for quick links that
+     leave the site (not any specific service's logo) */
+  link: { rows:[
+    ".....###",
+    ".....##.",
+    ".....#..",
+    "....#...",
+    "...#....",
+    "..#.....",
+    ".#......",
+    "#......." ], pal:{"#":"#1a1a1a"} }
 };
 
 function pixelSVG(id, cell){

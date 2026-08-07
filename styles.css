@@ -333,6 +333,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;}
 .start-list{flex:1;display:flex;flex-direction:column;padding:2px;background:var(--chrome);}
 .start-item{
   display:flex;align-items:center;gap:9px;padding:5px 8px;font-size:12px;text-align:left;background:none;border:none;width:100%;cursor:pointer;
+  color:inherit;text-decoration:none; /* some start-items are <a> tags (external quick links) — match the <button> ones */
 }
 .start-item .icon-slot{width:20px;height:20px;flex:none;}
 .start-item .icon-slot svg{width:20px;height:20px;}
