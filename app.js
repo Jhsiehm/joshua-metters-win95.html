@@ -2676,7 +2676,6 @@ renderIcons(document);
 /* Everyone gets the full boot sequence and Welcome.exe afterward.
    Narrow viewports still get fullscreen windows via CSS; the plain-text
    résumé remains available from the skip link / taskbar toggle. */
-var isMobileDefault = window.matchMedia("(max-width:760px)").matches;
 var bootScreen = document.getElementById("boot-screen");
 
 /* The joke lands once per tab session, not on every reload. */
