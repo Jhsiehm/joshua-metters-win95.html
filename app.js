@@ -1709,7 +1709,12 @@ applyWallpaper(currentWallpaper);
    WELCOME WINDOW — auto-opens once the desktop is ready (see
    postBootSetup), answers "who is this" before anything else does.
    ============================================================ */
-function openWelcomeWindow(){ openWindow("welcome"); }
+function openWelcomeWindow(){
+  openWindow("welcome");
+  /* Focus the default dialog button so Enter works like a Win95 msgbox. */
+  var defBtn = document.getElementById("welcome-resume");
+  if(defBtn) requestAnimationFrame(function(){ defBtn.focus({preventScroll:true}); });
+}
 document.getElementById("welcome-resume").addEventListener("click", function(){
   closeWindow("welcome");
   openWindow("resume");
@@ -1717,6 +1722,12 @@ document.getElementById("welcome-resume").addEventListener("click", function(){
 document.getElementById("welcome-projects").addEventListener("click", function(){
   closeWindow("welcome");
   openWindow("projects");
+});
+document.getElementById("win-welcome").addEventListener("keydown", function(e){
+  if(e.key !== "Enter") return;
+  if(e.target && e.target.id === "welcome-projects") return;
+  e.preventDefault();
+  document.getElementById("welcome-resume").click();
 });
 
 /* ============================================================
