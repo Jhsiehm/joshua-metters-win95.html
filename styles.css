@@ -48,13 +48,33 @@ button{font-family:inherit;font-size:inherit;color:inherit;}
   border-color:var(--chrome-light) var(--chrome-dark) var(--chrome-dark) var(--chrome-light);
   box-shadow:inset 1px 1px 0 var(--chrome-hi), inset -1px -1px 0 var(--chrome-shadow);
   background:var(--chrome);cursor:pointer;padding:4px 14px;font-size:12px;
+  min-width:75px;
 }
 .btn-raised:active{
   border-color:var(--chrome-dark) var(--chrome-light) var(--chrome-light) var(--chrome-dark);
   box-shadow:inset 1px 1px 0 var(--chrome-shadow), inset -1px -1px 0 var(--chrome-hi);
 }
+/* Classic Win95 "default" dialog button: black outer ring around the bevel. */
+.btn-default{
+  outline:1px solid var(--chrome-dark);
+  outline-offset:1px;
+  font-weight:bold;
+  padding:5px 18px;
+}
+.btn-default:focus-visible{
+  outline:1px solid var(--chrome-dark);
+  outline-offset:1px;
+  box-shadow:
+    inset 1px 1px 0 var(--chrome-hi),
+    inset -1px -1px 0 var(--chrome-shadow),
+    inset 0 0 0 1px var(--chrome-dark);
+}
 .btn-raised:focus-visible, .icon:focus-visible, .start-item:focus-visible, .task-btn:focus-visible, .win-btn:focus-visible{
   outline:1px dotted #000;outline-offset:-4px;
+}
+.btn-default.btn-raised:focus-visible{
+  outline:1px solid var(--chrome-dark);
+  outline-offset:1px;
 }
 
 /* ---------- CRT overlay ---------- */
@@ -203,10 +223,15 @@ button{font-family:inherit;font-size:inherit;color:inherit;}
 .proj-stat-label{font-weight:bold;color:#1e7a3e;text-transform:uppercase;letter-spacing:.06em;font-size:9.5px;}
 
 /* welcome window */
-.welcome-body{padding:18px 20px;text-align:center;}
+.welcome-body{padding:18px 20px 14px;text-align:center;}
 .welcome-body h2{margin:0 0 8px;font-size:16px;}
-.welcome-body p{margin:0 0 16px;font-size:12px;line-height:1.5;color:#333;}
-.welcome-actions{display:flex;gap:10px;justify-content:center;}
+.welcome-body p{margin:0 0 0;font-size:12px;line-height:1.5;color:#333;}
+.welcome-actions{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--chrome-shadow);
+  box-shadow:inset 0 1px 0 var(--chrome-light);
+}
 
 /* extras folder */
 .extras-row{
