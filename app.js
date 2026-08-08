@@ -599,14 +599,10 @@ function finishBoot(userGesture, instant){
     boot.hidden = true;
     desktop.hidden = false;
     desktop.removeAttribute("aria-hidden");
-    /* Mobile still gets the full boot sequence — it's the best part of
-       the bit — it just lands on the plain-text résumé afterward
-       instead of a desktop full of tiny drag targets. */
-    if(typeof isMobileDefault !== "undefined" && isMobileDefault && typeof showPlain === "function"){
-      showPlain();
-    } else if(typeof postBootSetup === "function") {
-      postBootSetup();
-    }
+    /* Everyone lands on Welcome.exe after boot — desktop or phone.
+       The plain-text résumé stays one tap away via the skip link /
+       taskbar toggle; it is no longer the mobile default. */
+    if(typeof postBootSetup === "function") postBootSetup();
   }
   if(instant){
     reveal();
@@ -856,10 +852,9 @@ function loadState(opts){
   return restoredAny;
 }
 
-/* Runs once, right after the boot screen clears (desktop path only —
-   mobile goes to showPlain() instead, see finishBoot). Geometry from
-   the last visit comes back; open windows do not — Welcome.exe is the
-   intentional first read, personality-forward, not the formal résumé. */
+/* Runs once, right after the boot screen clears. Geometry from the last
+   visit comes back; open windows do not — Welcome.exe is the intentional
+   first read, personality-forward, not the formal résumé. */
 function postBootSetup(){
   loadState({ restoreOpen: false });
   if(typeof openWelcomeWindow === "function") openWelcomeWindow();
@@ -2678,13 +2673,9 @@ var ASSISTANT_LINES = [
    ============================================================ */
 renderIcons(document);
 
-/* Everyone gets the full boot sequence, mobile included — it's the best
-   part of the bit. Dragging/resizing tiny windows on a phone is a bad
-   experience though, so narrow viewports land on the plain-text résumé
-   once boot finishes (see finishBoot) instead of the desktop. The
-   "Back to the desktop" link at the top of that view still reaches the
-   full interactive site — it's one tap away, not removed. */
-var isMobileDefault = window.matchMedia("(max-width:760px)").matches;
+/* Everyone gets the full boot sequence and Welcome.exe afterward.
+   Narrow viewports still get fullscreen windows via CSS; the plain-text
+   résumé remains available from the skip link / taskbar toggle. */
 var bootScreen = document.getElementById("boot-screen");
 
 /* The joke lands once per tab session, not on every reload. */
