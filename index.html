@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="An interactive résumé styled as a Windows 95 desktop — built and playable, not just a screenshot of one.">
 <meta name="twitter:image" content="og-image.png">
 
-<link rel="stylesheet" href="styles.css?v=welcome-btn-95">
+<link rel="stylesheet" href="styles.css?v=welcome-hub-1">
 </head>
 <body>
 
@@ -153,28 +153,66 @@
   </div>
 
   <!-- ============ WELCOME ============ -->
-  <section class="win-window raised" id="win-welcome" data-app="welcome" style="left:80px;top:50px;width:380px;height:230px;">
+  <!-- First surface after boot: personality hub, not the formal résumé.
+       About_Me.txt stays a separate notepad with different copy. -->
+  <section class="win-window raised" id="win-welcome" data-app="welcome" style="left:70px;top:36px;width:480px;height:460px;">
     <div class="win-titlebar" data-drag>
       <span class="icon-slot" data-icon="person"></span>
       <span class="win-title">Welcome.exe</span>
       <div class="win-controls">
+        <button class="win-btn" data-action="minimize">_</button>
+        <button class="win-btn" data-action="maximize">&#9633;</button>
         <button class="win-btn" data-action="close">&#10005;</button>
       </div>
     </div>
+    <div class="win-menubar">
+      <span data-menu="view">File</span>
+      <span data-menu="view">View</span>
+      <span data-menu="help">Help</span>
+    </div>
     <div class="win-body">
       <div class="welcome-body">
-        <h2>Joshua Metters</h2>
-        <p>Policy researcher and builder working at the intersection of government, markets, and data.</p>
-        <div class="welcome-actions">
-          <button class="btn-raised btn-default" id="welcome-resume" type="button">View R&eacute;sum&eacute;</button>
-          <button class="btn-raised" id="welcome-projects" type="button">Explore Projects</button>
+        <nav class="welcome-nav" aria-label="Quick links">
+          <button type="button" data-open="welcome" class="active">home</button>
+          <button type="button" data-open="about">about</button>
+          <button type="button" data-open="projects">projects</button>
+          <button type="button" data-open="resume">r&eacute;sum&eacute;</button>
+          <button type="button" data-open="writing">writing</button>
+          <button type="button" data-open="contact">contact</button>
+        </nav>
+
+        <div class="welcome-pane sunken">
+          <h2>Joshua Metters</h2>
+          <p class="welcome-tagline">Illegible systems, mostly &mdash; governments, markets, and the AI now built to run them.</p>
+          <p class="welcome-bio">TradeSimple maps money nobody bothers to explain. Pitstop maps the exits a city won&rsquo;t tell you about. My research asks how states rewrite their own history to stay legitimate &mdash; the same question I ask about a jacket&rsquo;s label. Elliott School by day, thrifted workwear and Wong Kar-wai stills off the clock.</p>
+          <div class="welcome-current">
+            <span class="welcome-label">CURRENTLY</span>
+            <ul>
+              <li>Special Projects Intern @ Statecraft</li>
+              <li>Building TradeSimple &amp; Pitstop</li>
+              <li>Research: postwar memory politics, Japan / Korea / Taiwan</li>
+              <li>Writing: &ldquo;Is Thinking The New Luxury?&rdquo; (Substack, forthcoming)</li>
+            </ul>
+          </div>
         </div>
+
+        <div class="welcome-actions">
+          <button class="btn-raised btn-default" id="welcome-projects" type="button">Explore Projects</button>
+          <button class="btn-raised" id="welcome-about" type="button">About_Me.txt</button>
+          <button class="btn-raised" id="welcome-resume" type="button">View R&eacute;sum&eacute;</button>
+        </div>
+
         <div class="hit-counter">
           <span>You are visitor</span>
           <span class="hit-digits" id="hit-digits" aria-label="visitor number"></span>
         </div>
       </div>
     </div>
+    <div class="win-statusbar">
+      <span>Ready</span>
+      <span style="margin-left:auto;">JoshuaOS homepage</span>
+    </div>
+    <div class="resize-handle" data-resize></div>
   </section>
 
   <!-- ============ EXTRAS ============ -->
@@ -823,6 +861,6 @@ The current build is fine — this is a decorative crash.</p>
 </div>
 
 
-<script src="app.js?v=welcome-btn-95"></script>
+<script src="app.js?v=welcome-hub-1"></script>
 </body>
 </html>
