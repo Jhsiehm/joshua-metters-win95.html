@@ -826,7 +826,12 @@ function saveState(){
   } catch(e){ /* storage unavailable — not fatal */ }
 }
 
-function loadState(){
+/* restoreOpen: when false, only reapplies geometry (size/position).
+   Boot uses that so returning visitors aren't dumped into Resume.txt
+   or a pile of leftover windows — Welcome.exe is always the first surface. */
+function loadState(opts){
+  opts = opts || {};
+  var restoreOpen = opts.restoreOpen !== false;
   var restoredAny = false;
   try{
     var raw = localStorage.getItem(STATE_KEY);
@@ -841,7 +846,7 @@ function loadState(){
       if(s.width) el.style.width = s.width;
       if(s.height) el.style.height = s.height;
       if(s.maximized) el.classList.add("maximized");
-      if(s.open){
+      if(restoreOpen && s.open){
         restoredAny = true;
         openWindow(app.id);
         if(s.minimized) minimizeWindow(app.id);
@@ -852,11 +857,11 @@ function loadState(){
 }
 
 /* Runs once, right after the boot screen clears (desktop path only —
-   mobile goes to showPlain() instead, see finishBoot). Restores last
-   visit's windows, then opens the compact welcome window every time —
-   it's cheap to dismiss and answers "who is this" before anything else. */
+   mobile goes to showPlain() instead, see finishBoot). Geometry from
+   the last visit comes back; open windows do not — Welcome.exe is the
+   intentional first read, personality-forward, not the formal résumé. */
 function postBootSetup(){
-  loadState();
+  loadState({ restoreOpen: false });
   if(typeof openWelcomeWindow === "function") openWelcomeWindow();
 }
 
@@ -1711,23 +1716,26 @@ applyWallpaper(currentWallpaper);
    ============================================================ */
 function openWelcomeWindow(){
   openWindow("welcome");
-  /* Focus the default dialog button so Enter works like a Win95 msgbox. */
-  var defBtn = document.getElementById("welcome-resume");
+  /* Focus the default dialog button so Enter works like a Win95 msgbox.
+     Default is Projects — résumé stays available, not the first shove. */
+  var defBtn = document.getElementById("welcome-projects");
   if(defBtn) requestAnimationFrame(function(){ defBtn.focus({preventScroll:true}); });
 }
-document.getElementById("welcome-resume").addEventListener("click", function(){
-  closeWindow("welcome");
-  openWindow("resume");
-});
 document.getElementById("welcome-projects").addEventListener("click", function(){
-  closeWindow("welcome");
   openWindow("projects");
+});
+document.getElementById("welcome-about").addEventListener("click", function(){
+  openWindow("about");
+});
+document.getElementById("welcome-resume").addEventListener("click", function(){
+  openWindow("resume");
 });
 document.getElementById("win-welcome").addEventListener("keydown", function(e){
   if(e.key !== "Enter") return;
-  if(e.target && e.target.id === "welcome-projects") return;
+  if(e.target && (e.target.id === "welcome-about" || e.target.id === "welcome-resume")) return;
+  if(e.target && e.target.closest && e.target.closest(".welcome-nav")) return;
   e.preventDefault();
-  document.getElementById("welcome-resume").click();
+  document.getElementById("welcome-projects").click();
 });
 
 /* ============================================================
