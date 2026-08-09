@@ -1853,6 +1853,7 @@ function openWelcomeWindow(){
   sizeWelcomeForViewport();
   openWindow("welcome");
   fitWindowToDesktop(document.getElementById("win-welcome"));
+  if(typeof updateWelcomeWritingLine === "function") updateWelcomeWritingLine();
   /* Focus the default dialog button so Enter works like a Win95 msgbox.
      Default is Projects. résumé stays available, not the first shove. */
   var defBtn = document.getElementById("welcome-projects");
@@ -2481,8 +2482,9 @@ startQuiz();
    feeds (no CORS header. they're built for feed readers, not
    client JS), so this tries direct first, falls back to a public
    CORS proxy, and only shows a "visit Substack directly" message
-   if both fail. Fetched once, the first time the window opens.
-   ============================================================ */
+   if both fail. Fetched once total and cached/shared -- both the
+   My Writing window and Welcome.exe's "CURRENTLY" line read from
+   the same fetch instead of hitting the feed twice. */
 var SUBSTACK_URL = "https://joshmetters.substack.com";
 var SUBSTACK_FEED = SUBSTACK_URL + "/feed";
 var CORS_PROXY = "https://api.allorigins.win/raw?url=";
@@ -2499,6 +2501,39 @@ function parseSubstackRSS(xmlText){
       pubDate: p ? p.textContent : ""
     };
   });
+}
+
+/* items: an array (possibly empty) on success, or null if both the
+   direct fetch and the proxy fallback failed. */
+var substackItemsCache; /* undefined until the first fetch settles */
+var substackListeners = [];
+function getSubstackItems(cb){
+  if(substackItemsCache !== undefined){ cb(substackItemsCache); return; }
+  substackListeners.push(cb);
+  if(substackListeners.length > 1) return; /* a fetch is already in flight */
+  function settle(items){
+    substackItemsCache = items;
+    var listeners = substackListeners;
+    substackListeners = [];
+    listeners.forEach(function(fn){ fn(items); });
+  }
+  fetch(SUBSTACK_FEED)
+    .then(function(r){ if(!r.ok) throw new Error("bad status"); return r.text(); })
+    .then(function(text){
+      var items = parseSubstackRSS(text);
+      if(items === null) throw new Error("parse failed");
+      settle(items);
+    })
+    .catch(function(){
+      fetch(CORS_PROXY + encodeURIComponent(SUBSTACK_FEED))
+        .then(function(r){ if(!r.ok) throw new Error("proxy bad status"); return r.text(); })
+        .then(function(text){
+          var items = parseSubstackRSS(text);
+          if(items === null) throw new Error("proxy parse failed");
+          settle(items);
+        })
+        .catch(function(){ settle(null); });
+    });
 }
 
 function renderWritingPosts(items){
@@ -2535,23 +2570,27 @@ function renderWritingFallback(){
 function loadWritingFeed(){
   if(writingLoaded) return;
   writingLoaded = true;
-  fetch(SUBSTACK_FEED)
-    .then(function(r){ if(!r.ok) throw new Error("bad status"); return r.text(); })
-    .then(function(text){
-      var items = parseSubstackRSS(text);
-      if(items === null) throw new Error("parse failed");
-      renderWritingPosts(items);
-    })
-    .catch(function(){
-      fetch(CORS_PROXY + encodeURIComponent(SUBSTACK_FEED))
-        .then(function(r){ if(!r.ok) throw new Error("proxy bad status"); return r.text(); })
-        .then(function(text){
-          var items = parseSubstackRSS(text);
-          if(items === null) throw new Error("proxy parse failed");
-          renderWritingPosts(items);
-        })
-        .catch(renderWritingFallback);
-    });
+  getSubstackItems(function(items){
+    if(items === null) renderWritingFallback();
+    else renderWritingPosts(items);
+  });
+}
+
+/* Updates Welcome.exe's "CURRENTLY > WRITING.TXT" line with the actual
+   latest post title once the feed loads, so it can never go stale the
+   way a hand-written blurb would. Leaves the static HTML text in place
+   (a reasonable default) if the fetch fails or nothing's published. */
+function updateWelcomeWritingLine(){
+  var el = document.getElementById("wc-writing-desc");
+  if(!el) return;
+  getSubstackItems(function(items){
+    if(items && items.length){
+      el.textContent = "“" + items[0].title + "” on Substack";
+    } else if(items && items.length === 0){
+      el.textContent = "No posts yet — more soon";
+    }
+    /* items === null (fetch failed): leave the existing static text. */
+  });
 }
 
 /* ============================================================
