@@ -860,6 +860,11 @@ function restoreWindow(id){
 }
 
 function toggleMaximize(id){
+  /* Welcome.exe is a compact personality-hub dialog, not a maximizable
+     app -- its content is sized for ~500px, and stretching it edge to
+     edge on a large monitor just strands that content in a mostly-empty
+     box. Real Win95 small utility windows commonly skip maximize too. */
+  if(id === "welcome") return;
   var el = winEl(id);
   if(!reducedMotion) el.classList.add("geometry-anim");
   if(el.classList.contains("maximized")){
@@ -961,6 +966,11 @@ function sizeWelcomeForViewport(){
   var el = document.getElementById("win-welcome");
   var desk = document.getElementById("desktop");
   if(!el || !desk) return;
+  /* Clears out any "maximized" state a returning visitor's browser saved
+     from before maximize was disabled for this window (see
+     toggleMaximize) -- otherwise the !important CSS rule would keep
+     winning over the geometry this function is about to set below. */
+  el.classList.remove("maximized");
   if(window.matchMedia("(max-width:760px)").matches) return; /* CSS fullscreen */
   var dr = desk.getBoundingClientRect();
   var taskbar = 32;
@@ -2147,7 +2157,7 @@ function resetIdleTimer(){
 }
 
 function triggerScreensaver(){
-  if(!bootScreenEl.hidden) return;               /* still booting */
+  if(!bootScreen.hidden) return;                  /* still booting */
   if(!shutdownScreen.hidden) return;              /* mid shutdown gag */
   if(!bsodScreen.hidden) return;                  /* mid BSOD gag */
   if(!msgOverlay.hidden) return;                  /* a dialog is open */
