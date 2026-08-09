@@ -116,7 +116,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;}
   cursor:default;touch-action:none;
 }
 .icon .icon-slot{width:32px;height:32px;display:flex;align-items:center;justify-content:center;}
-.icon .icon-slot svg{image-rendering:pixelated;}
+.icon .icon-slot svg{width:32px;height:32px;image-rendering:pixelated;}
 .icon.selected{background:rgba(0,0,128,.55);border:1px dotted #fff;}
 .marquee{position:absolute;border:1px dotted #fff;background:rgba(0,0,128,.25);pointer-events:none;}
 
