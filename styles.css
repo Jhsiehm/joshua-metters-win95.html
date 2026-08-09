@@ -246,34 +246,65 @@ button{font-family:inherit;font-size:inherit;color:inherit;}
   background:var(--chrome-hi);
 }
 .welcome-pane{
-  flex:1;padding:14px 16px 12px;background:#fff;overflow:auto;
+  flex:1;padding:16px 18px 14px;background:#fff;overflow:auto;
   margin-bottom:10px;
 }
-.welcome-body h2{margin:0 0 4px;font-size:16px;}
-.welcome-tagline{margin:0 0 10px;font-size:12px;line-height:1.5;color:#333;}
+/* Type hierarchy stays inside Tahoma + mono — immersion, not a modern display face. */
+.welcome-name{
+  margin:0 0 6px;font-family:var(--ui);font-size:19px;font-weight:bold;
+  letter-spacing:-0.02em;line-height:1.15;color:#000;
+}
+.welcome-tagline{
+  margin:0 0 12px;max-width:42ch;
+  font-family:var(--ui);font-size:12px;font-style:italic;font-weight:normal;
+  line-height:1.5;color:#444;
+}
 .welcome-bio{
-  margin:0 0 12px;font-size:11.5px;line-height:1.6;color:#333;
-  padding-bottom:12px;border-bottom:1px dotted var(--chrome-shadow);
+  margin:0 0 16px;max-width:42ch;
+  font-family:var(--ui);font-size:12px;line-height:1.65;color:#222;
 }
-.welcome-current{margin:0 0 2px;}
+/* Classic Win95 group box: etched border, legend sitting on the edge. */
+.welcome-group{
+  margin:0;padding:14px 12px 10px;min-width:0;max-width:46ch;
+  border:none;
+  box-shadow:
+    inset 1px 1px 0 var(--chrome-shadow),
+    inset -1px -1px 0 var(--chrome-light),
+    inset 2px 2px 0 #fff,
+    inset -2px -2px 0 var(--chrome-hi);
+  background:transparent;
+}
 .welcome-label{
-  display:block;font-size:10px;letter-spacing:.08em;color:#555;
-  margin-bottom:6px;font-family:var(--ui);font-weight:bold;
+  float:none;width:auto;padding:0 5px;margin-left:4px;
+  font-family:var(--mono);font-size:10px;font-weight:bold;font-style:normal;
+  letter-spacing:.1em;text-transform:uppercase;color:#000;
+  background:#fff;
 }
-.welcome-current ul{margin:0;padding:0;list-style:none;}
+.welcome-current{margin:2px 0 0;padding:0;list-style:none;}
 .welcome-current li{
-  font-size:11.5px;line-height:1.7;padding-left:14px;position:relative;color:#222;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;
+  font-size:11.5px;line-height:1.55;padding:5px 0 5px 12px;position:relative;color:#222;
+  border-bottom:1px dotted #ddd;
 }
+.welcome-current li:last-child{border-bottom:none;padding-bottom:0;}
 .welcome-current li::before{
-  content:"\2022";position:absolute;left:2px;color:var(--titlebar-b);
+  content:">";position:absolute;left:0;top:5px;
+  font-family:var(--mono);font-size:11px;color:var(--titlebar-a);
 }
+.wc-app{
+  flex:0 0 auto;font-family:var(--mono);font-size:10.5px;font-weight:bold;
+  letter-spacing:.02em;color:var(--titlebar-a);text-transform:uppercase;
+}
+.wc-desc{flex:1 1 12rem;font-family:var(--ui);font-size:11.5px;color:#222;}
 .welcome-actions{
   display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
   padding:10px 4px 6px;
   border-top:1px solid var(--chrome-shadow);
   box-shadow:inset 0 1px 0 var(--chrome-light);
 }
-.welcome-body .hit-counter{padding:6px 0 2px;}
+.welcome-body .hit-counter{
+  padding:6px 0 2px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+}
 
 /* extras folder */
 .extras-row{
