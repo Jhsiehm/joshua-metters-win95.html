@@ -1,7 +1,7 @@
 (function(){
 "use strict";
 
-/* Read once, used everywhere motion/sound gets triggered — window
+/* Read once, used everywhere motion/sound gets triggered. window
    animations, the screensaver, the BSOD gag, system sounds. */
 var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -298,7 +298,7 @@ var EXPERIENCE = [
 ];
 
 /* word-wraps a run of prose to `width` columns, for the monospace
-   Notepad résumé — used only there; the HTML views wrap themselves. */
+   Notepad résumé. used only there; the HTML views wrap themselves. */
 function wrapPlainText(text, width){
   var words = text.split(" ");
   var lines = [], cur = "";
@@ -318,7 +318,7 @@ function buildResumeText(){
   out.push("Washington, DC | Livingston, NJ");
   out.push("joshua.metters@gwu.edu | linkedin.com/in/joshua-metters-8b0042225");
   out.push("");
-  out.push("Builder and policy researcher — shipping data systems that connect");
+  out.push("Builder and policy researcher. Ships data systems that connect");
   out.push("federal policy signals to real-world outcomes.");
   out.push("");
   out.push(DIV); out.push("EXPERIENCE"); out.push(DIV);
@@ -342,13 +342,13 @@ function buildResumeText(){
   out.push("                lobbying disclosure analysis, and USASpending");
   out.push("                contract data via TradeSimple; policy memo drafting");
   out.push("                from NJ Senate testimony and NYLCV research.");
-  out.push("Languages:      Mandarin Chinese — heritage speaker, advanced");
+  out.push("Languages:      Mandarin Chinese, heritage speaker, advanced");
   out.push("                coursework.");
   out.push("Certifications: Building with the Claude API; Claude Code in Action");
   out.push("                (Anthropic, 2026)");
   out.push("");
   out.push(DIV); out.push("EDUCATION"); out.push(DIV);
-  out.push("The George Washington University — Elliott School of International");
+  out.push("The George Washington University, Elliott School of International");
   out.push("Affairs | Expected 2029");
   out.push("B.A., International Affairs, Concentrations in International");
   out.push("Political Economy and East Asia");
@@ -436,37 +436,37 @@ var PROJECTS = [
 var ABOUT_TEXT =
 "Not a resume. Just the desktop.\n" +
 "\n" +
-"I build things I actually want to exist, then find out if\n" +
-"anyone else wants them too. TradeSimple started because the\n" +
-"data that actually moves markets is expensive, scattered\n" +
-"across a dozen federal portals, and never explained in a way\n" +
-"that tells you why it matters. Pitstop started because I kept\n" +
-"taking the same three exits on a familiar drive and wondered\n" +
-"what I was missing on the other four hundred.\n" +
+"I build things I want to exist, then see if anyone else wants\n" +
+"them too. TradeSimple started because the data that moves\n" +
+"markets is expensive and scattered across a dozen federal\n" +
+"portals, never explained in a way that tells you why it\n" +
+"matters. Pitstop started because I kept taking the same three\n" +
+"exits on a familiar drive and wondered what I was missing on\n" +
+"the other four hundred.\n" +
 "\n" +
-"I spent a lot of last year in rooms where the whole point was\n" +
-"being right: testifying, organizing, arguing a bill across\n" +
+"Spent a lot of last year in rooms where the whole point was\n" +
+"being right. Testifying. Organizing. Arguing a bill across\n" +
 "the finish line. Building is a different game. Nobody's\n" +
-"grading it, and the thing either works or it doesn't. I like\n" +
-"that more than I expected to.\n" +
+"grading it. The thing either works or it doesn't. I like that\n" +
+"more than I expected to.\n" +
 "\n" +
 "Elliott School by day, mostly for the excuse to keep reading\n" +
 "about how policy actually moves money instead of just\n" +
-"sounding like it does. Heritage speaker of Mandarin, which\n" +
-"does more work in the East Asia coursework than I expected,\n" +
-"and more work in how I think about a place I'm from but\n" +
-"wasn't raised in than I usually say out loud.\n" +
+"sounding like it does. Heritage speaker of Mandarin. Does\n" +
+"more work in the East Asia coursework than I expected, and\n" +
+"more work in how I think about a place I'm from but wasn't\n" +
+"raised in than I usually say out loud.\n" +
 "\n" +
-"I ran Monte Carlo simulations for CRS and for an actual\n" +
-"Assembly primary the same spring, a week apart. Same math,\n" +
-"same feeling of watching a number try to guess something\n" +
-"that hasn't happened yet. Uncertainty doesn't care which one\n" +
+"Ran Monte Carlo simulations for CRS and for an actual\n" +
+"Assembly primary the same spring, a week apart. Same math.\n" +
+"Same feeling of watching a number try to guess something that\n" +
+"hasn't happened yet. Uncertainty doesn't care which one\n" +
 "you're pointing it at.\n" +
 "\n" +
-"Off the clock: thrifted workwear over anything new, a running\n" +
+"Off the clock: thrifted workwear over anything new. A running\n" +
 "list of Wong Kar-wai film stills I keep going back to for\n" +
-"reasons I can't fully explain, and a rule I try to hold to:\n" +
-"nothing that looks like a surveillance tool with a nicer\n" +
+"reasons I can't fully explain. And a rule I try to hold to.\n" +
+"Nothing that looks like a surveillance tool with a nicer\n" +
 "logo.\n" +
 "\n" +
 "This site is a Windows 95 desktop because portfolios that\n" +
@@ -475,7 +475,7 @@ var ABOUT_TEXT =
 "go read the resume if that's what you came here for.";
 
 var SKILLS_INI_HTML =
-'<span class="ini-comment">; skills.ini \u2014 evidence, not adjectives. every line names</span>\n' +
+'<span class="ini-comment">; skills.ini: evidence, not adjectives. every line names</span>\n' +
 '<span class="ini-comment">; where it actually got used.</span>\n\n' +
 '<span class="ini-section">[TECHNICAL]</span>\n' +
 '<span class="ini-key">NodeJS</span>=<span class="ini-val">TradeSimple,ProductionUse</span>\n' +
@@ -514,18 +514,18 @@ var PROGRAMS_LIST_TEXT =
 "Congressional Certificate, Rep. Mikie Sherrill 7.9 MB   2024\n" +
 "AWS Micro-Hackathon, 3rd Place                 6.2 MB   2026";
 
-/* PLACEHOLDER — swap these for Joshua's actual three History Bowl-style
+/* PLACEHOLDER. swap these for Joshua's actual three History Bowl-style
    questions before this ships. Written as obvious stand-ins on purpose
    rather than invented trivia, since getting a real fact wrong here
    would be worse than an empty state. */
 var QUIZ = [
-  { q:"Placeholder question 1 — replace with a real one.",
+  { q:"Placeholder question 1. Replace with a real one.",
     options:["Placeholder answer A", "Placeholder answer B (correct)", "Placeholder answer C"],
     correct:1 },
-  { q:"Placeholder question 2 — replace with a real one.",
+  { q:"Placeholder question 2. Replace with a real one.",
     options:["Placeholder answer A (correct)", "Placeholder answer B", "Placeholder answer C"],
     correct:0 },
-  { q:"Placeholder question 3 — replace with a real one.",
+  { q:"Placeholder question 3. Replace with a real one.",
     options:["Placeholder answer A", "Placeholder answer B", "Placeholder answer C (correct)"],
     correct:2 }
 ];
@@ -538,7 +538,7 @@ var bootLines = [
   "Copyright (C) Joshua Metters. All rights reserved.",
   "",
   "CPU: Elliott School Policy Engine  ....................  OK",
-  "MEM: 640 KB (Mandarin, EN) — ought to be enough  ........  OK",
+  "MEM: 640 KB (Mandarin, EN). Ought to be enough  ........  OK",
   "",
   "Detecting drives...",
   "  C:\\ POLICY_RESEARCH ..................  1024 MB  OK",
@@ -581,7 +581,7 @@ function typeBoot(){
    auto-advances (the 2.8s timeout) before the visitor does either, the
    chime would otherwise be lost for good. tryPlayChime() is idempotent,
    so it's safe to also wire up as a one-time fallback on the very next
-   real interaction anywhere on the page — see the boot kickoff below. */
+   real interaction anywhere on the page. see the boot kickoff below. */
 var chimePlayed = false;
 function tryPlayChime(){
   if(chimePlayed) return;
@@ -599,7 +599,7 @@ function finishBoot(userGesture, instant){
     boot.hidden = true;
     desktop.hidden = false;
     desktop.removeAttribute("aria-hidden");
-    /* Everyone lands on Welcome.exe after boot — desktop or phone.
+    /* Everyone lands on Welcome.exe after boot. desktop or phone.
        The plain-text résumé stays one tap away via the skip link /
        taskbar toggle; it is no longer the mobile default. */
     if(typeof postBootSetup === "function") postBootSetup();
@@ -617,7 +617,7 @@ function finishBoot(userGesture, instant){
    WINDOW MANAGER
    ============================================================ */
 
-/* Web Animations API, not CSS transitions — a window's left/top/width
+/* Web Animations API, not CSS transitions. a window's left/top/width
    change on every drag frame, and a blanket CSS transition on those
    properties would make dragging feel laggy. .animate() only touches
    the specific gesture it's asked for. All four no-op instantly under
@@ -674,7 +674,7 @@ var APPS = [
   { id:"minesweeper", title:"Minesweeper", icon:"bomb" },
   { id:"bin", title:"Recycle Bin", icon:"bin" }
 ];
-/* History Bowl Trivia (win-trophy) is deliberately not registered here —
+/* History Bowl Trivia (win-trophy) is deliberately not registered here.
    it still contains placeholder questions and shouldn't be reachable
    until real ones are supplied. The window and its JS are left intact
    so re-adding it later is a one-line change, not a rebuild. */
@@ -740,7 +740,7 @@ function openWindow(id){
 function closeWindow(id){
   var st = openApps[id];
   if(!st) return;
-  /* closing the Media Player silences it — minimize keeps it playing,
+  /* closing the Media Player silences it. minimize keeps it playing,
      like a real media player */
   if(id === "media"){
     stopMusic();
@@ -819,12 +819,12 @@ function saveState(){
       };
     });
     localStorage.setItem(STATE_KEY, JSON.stringify(state));
-  } catch(e){ /* storage unavailable — not fatal */ }
+  } catch(e){ /* storage unavailable. not fatal */ }
 }
 
 /* restoreOpen: when false, only reapplies geometry (size/position).
    Boot uses that so returning visitors aren't dumped into Resume.txt
-   or a pile of leftover windows — Welcome.exe is always the first surface. */
+   or a pile of leftover windows. Welcome.exe is always the first surface. */
 function loadState(opts){
   opts = opts || {};
   var restoreOpen = opts.restoreOpen !== false;
@@ -853,7 +853,7 @@ function loadState(opts){
 }
 
 /* Runs once, right after the boot screen clears. Geometry from the last
-   visit comes back; open windows do not — Welcome.exe is the intentional
+   visit comes back; open windows do not. Welcome.exe is the intentional
    first read, personality-forward, not the formal résumé. */
 function postBootSetup(){
   loadState({ restoreOpen: false });
@@ -933,7 +933,7 @@ document.querySelectorAll(".win-window").forEach(function(win){
   }
 });
 
-/* Escape closes whichever window currently has focus/is active — a cheap,
+/* Escape closes whichever window currently has focus/is active. a cheap,
    real keyboard affordance for people not using a mouse. */
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape") return;
@@ -942,7 +942,7 @@ document.addEventListener("keydown", function(e){
 });
 
 /* ============================================================
-   DESKTOP ICONS — grid layout (persisted per icon via localStorage),
+   DESKTOP ICONS. grid layout (persisted per icon via localStorage),
    drag-to-reposition, marquee select, and the existing open/select
    click behavior, now all living in one place instead of split
    between a flexbox layout and ad-hoc handlers.
@@ -994,7 +994,7 @@ document.querySelectorAll(".icon").forEach(function(icon){
     openWindow(app);
   });
   /* keyboard users get Enter/Space instead of the double-click most
-     input devices need — a focused icon should never need a mouse to
+     input devices need. a focused icon should never need a mouse to
      actually open. */
   icon.addEventListener("keydown", function(e){
     if(e.key === "Enter" || e.key === " "){
@@ -1155,7 +1155,7 @@ function submitRun(){
   var raw = runInput.value.trim().toLowerCase().replace(/[\s._-]/g, "").replace(/\.(exe|txt|ini)$/, "");
   var target = RUN_ALIASES[raw];
   var typedValue = runInput.value;
-  closeRunDialog(); /* always close first — never stack this overlay under the message box */
+  closeRunDialog(); /* always close first. never stack this overlay under the message box */
   if(target) openWindow(target);
   else alertBox("Cannot Run Program", "Cannot find '" + (typedValue || "(nothing)") + "'. Make sure you typed the name correctly, or try Start → Programs instead.");
 }
@@ -1252,13 +1252,13 @@ document.querySelectorAll("[data-menu]").forEach(function(span){
     } else if(kind === "resume-edit"){
       openFind();
     } else {
-      alertBox("Notice", "This menu is decorative \u2014 JoshuaOS demo edition. Try the desktop icons and Start Menu instead.");
+      alertBox("Notice", "This menu is decorative. JoshuaOS demo edition. Try the desktop icons and Start Menu instead.");
     }
   });
 });
 
 /* ============================================================
-   HAND-ROLLED PDF GENERATOR (no library, no CDN — builds a minimal but
+   HAND-ROLLED PDF GENERATOR (no library, no CDN. builds a minimal but
    spec-valid single-content-stream PDF directly from RESUME_TEXT). The
    base-14 Courier font only covers WinAnsi/Latin-1, so anything outside
    that range gets swapped for an ASCII-safe equivalent before it's laid
@@ -1327,7 +1327,7 @@ function buildResumePdfBlob(rawText){
 
 /* ============================================================
    RESUME TEXT: live word count + cursor position, a one-time
-   typewriter reveal, and in-page Find (Ctrl+F) — the parts of a real
+   typewriter reveal, and in-page Find (Ctrl+F). the parts of a real
    Notepad this site was otherwise just imitating the look of.
    ============================================================ */
 var resumeTypedOnce = false;
@@ -1383,7 +1383,7 @@ function revealResumeText(){
 })();
 
 /* ============================================================
-   FIND (Ctrl+F, Resume.txt only) — selects matches natively in the
+   FIND (Ctrl+F, Resume.txt only). selects matches natively in the
    textarea, the same visual highlight real Notepad gives you.
    ============================================================ */
 var findOverlay = document.getElementById("find-overlay");
@@ -1394,7 +1394,7 @@ var findLastIndex = -1;
 function openFind(){
   var resumeWin = document.getElementById("win-resume");
   if(!resumeWin.classList.contains("open")) openWindow("resume");
-  /* Find needs the full text available immediately — don't let it race
+  /* Find needs the full text available immediately. don't let it race
      a still-in-progress typewriter reveal. */
   var ta = document.getElementById("resume-text");
   if(ta.value !== RESUME_TEXT){
@@ -1424,7 +1424,7 @@ function findNext(){
       findLastIndex = -1;
       return;
     }
-    findStatus.textContent = "Reached the end — continued from the top.";
+    findStatus.textContent = "Reached the end. Continued from the top.";
   } else {
     findStatus.textContent = "";
   }
@@ -1552,7 +1552,7 @@ document.addEventListener("keydown", function(e){
         (proj.brand ?
           '<div class="proj-brand" style="background:'+proj.brand.bg+';color:'+proj.brand.fg+';">' +
             '<span class="proj-brand-mark">'+proj.brand.mark+'</span>' +
-            '<span class="proj-brand-note">Colors and copy pulled from the live site — a stylized preview, not a literal screenshot.</span>' +
+            '<span class="proj-brand-note">Colors and copy pulled from the live site. A stylized preview, not a literal screenshot.</span>' +
           '</div>' : '') +
         (proj.stat ?
           '<div class="proj-stat"><span class="proj-stat-label">'+proj.stat.label+'</span><span>'+proj.stat.value+'</span></div>' : '') +
@@ -1612,7 +1612,7 @@ document.getElementById("applet-addremove").addEventListener("dblclick", functio
 document.getElementById("applet-addremove").addEventListener("click", function(){ if(isCoarse) openWindow("addremove"); });
 
 /* ============================================================
-   DISPLAY PROPERTIES — three original wallpapers (all hand-drawn
+   DISPLAY PROPERTIES. three original wallpapers (all hand-drawn
    gradients/shapes, nothing scanned or copied), a working Screen
    Saver tab wired to the real idle timer, and a decorative
    Appearance tab that's honest about being decorative.
@@ -1701,18 +1701,18 @@ applyWallpaper(currentWallpaper);
     closeWindow("display");
     setTimeout(triggerScreensaver, 260);
   });
-  /* the Appearance tab has no JS of its own — it's static copy that
+  /* the Appearance tab has no JS of its own. it's static copy that
      says so, on purpose (see the markup above). */
 })();
 
 /* ============================================================
-   WELCOME WINDOW — auto-opens once the desktop is ready (see
+   WELCOME WINDOW. auto-opens once the desktop is ready (see
    postBootSetup), answers "who is this" before anything else does.
    ============================================================ */
 function openWelcomeWindow(){
   openWindow("welcome");
   /* Focus the default dialog button so Enter works like a Win95 msgbox.
-     Default is Projects — résumé stays available, not the first shove. */
+     Default is Projects. résumé stays available, not the first shove. */
   var defBtn = document.getElementById("welcome-projects");
   if(defBtn) requestAnimationFrame(function(){ defBtn.focus({preventScroll:true}); });
 }
@@ -1774,7 +1774,7 @@ soundBtn.addEventListener("click", function(){
 });
 
 /* short noise-burst impulse response, used to give the boot chime an
-   ambient tail — synthesized, not sampled from anywhere */
+   ambient tail. synthesized, not sampled from anywhere */
 function makeReverbImpulse(ctx, duration, decay){
   var rate = ctx.sampleRate;
   var length = Math.max(1, Math.floor(rate * duration));
@@ -1790,12 +1790,12 @@ function makeReverbImpulse(ctx, duration, decay){
 
 /* An original ambient synth-pad chime in the spirit of mid-90s OS startup
    sounds. Not a reproduction of any specific licensed startup sound (e.g.
-   the real Windows 95 chime, a copyrighted Brian Eno composition) — this
+   the real Windows 95 chime, a copyrighted Brian Eno composition). this
    uses a different chord entirely, written fresh. Its overall shape (a
    quick bright "ping" at the very top, a low pad entering just behind it,
    a mid layer a beat later, a high shimmer arriving late and lingering
    into a long reverb tail, ~6.5s total) is informed by spectral analysis
-   of that reference sound's timing/envelope — structural facts like pacing
+   of that reference sound's timing/envelope. structural facts like pacing
    and register, not its notes or its recording, which are never touched. */
 function playChime(){
   if(soundMuted) return;
@@ -1821,7 +1821,7 @@ function playChime(){
     var hasPanner = typeof ctx.createStereoPanner === "function";
 
     /* one sustained voice: gain ramps up over `attack`, holds at `peak`
-       for `hold`, then eases out over `release` — feeds both the dry
+       for `hold`, then eases out over `release`. feeds both the dry
        mix and the reverb send. `opts` adds the texture that makes this
        read as an analog pad rather than a plain tone: a lowpass filter
        that opens up over the attack/hold (the "warming up" quality real
@@ -1870,7 +1870,7 @@ function playChime(){
         var lfo = ctx.createOscillator();
         lfo.frequency.value = 0.12 + Math.random() * 0.1; /* slow, unsynced drift per voice */
         var lfoGain = ctx.createGain();
-        lfoGain.gain.value = 3.5; /* cents of wobble — subtle, not a vibrato */
+        lfoGain.gain.value = 3.5; /* cents of wobble. subtle, not a vibrato */
         lfo.connect(lfoGain).connect(osc.detune);
         lfo.start(t0);
         lfo.stop(t3 + 0.1);
@@ -1880,14 +1880,14 @@ function playChime(){
       osc.stop(t3 + 0.1);
     }
 
-    /* a bright bell-like "ping" right at the top — quick attack, quick
-       decay, no filter (kept clean), centered — the sound that opens
+    /* a bright bell-like "ping" right at the top. quick attack, quick
+       decay, no filter (kept clean), centered. the sound that opens
        everything else up */
     [1568.0, 1046.5].forEach(function(freq){ /* G6, C6 */
       voice(freq, 0.00, 0.01, 0.05, 0.55, 0.05, "sine", { pan: 0 });
     });
 
-    /* low pad, entering just behind the ping — the warm foundation,
+    /* low pad, entering just behind the ping. the warm foundation,
        held the longest, filter opening slowly from muffled to full */
     [{ f:146.83, pan:-0.35 }, { f:220.00, pan:0.35 }].forEach(function(n){ /* D3, A3 */
       [1, 1.004, 0.996].forEach(function(detune, vi){
@@ -1910,7 +1910,7 @@ function playChime(){
     });
 
     setTimeout(function(){ if(ctx.close) ctx.close(); }, 6800);
-  } catch(e){ /* autoplay/audio restrictions — fail silently */ }
+  } catch(e){ /* autoplay/audio restrictions. fail silently */ }
 }
 
 /* one-off short tone, the building block for every other system sound */
@@ -1956,7 +1956,7 @@ var plainView = document.getElementById("plain-view");
 var desktopEl = document.getElementById("desktop");
 
 /* Same EXPERIENCE array that feeds Experience.exe and the Notepad
-   résumé — one dataset, three renderings, no drift between them. */
+   résumé. one dataset, three renderings, no drift between them. */
 (function(){
   var wrap = document.getElementById("plain-exp-list");
   if(!wrap) return;
@@ -1965,7 +1965,7 @@ var desktopEl = document.getElementById("desktop");
     var orgHTML = job.url
       ? '<a href="' + job.url + '" target="_blank" rel="noopener">' + job.org + "</a>"
       : job.org;
-    html += "<h3>" + job.role + " &mdash; " + orgHTML + "</h3>";
+    html += "<h3>" + job.role + ", " + orgHTML + "</h3>";
     html += '<p class="plain-meta">' + job.date.replace(/-/g, "&ndash;") + "</p>";
     html += "<ul>" + job.bullets.map(function(b){ return "<li>" + b + "</li>"; }).join("") + "</ul>";
   });
@@ -1988,7 +1988,7 @@ document.getElementById("plain-view-toggle").addEventListener("click", function(
 document.getElementById("plain-view-back").addEventListener("click", function(e){ e.preventDefault(); hidePlain(); });
 
 /* ============================================================
-   IDLE SCREENSAVER EASTER EGG — flying pixel icons, reusing the same
+   IDLE SCREENSAVER EASTER EGG. flying pixel icons, reusing the same
    pixelSVG renderer already used everywhere else on the desktop.
    ============================================================ */
 var IDLE_TIMEOUT = 90000;
@@ -2073,7 +2073,7 @@ function dismissScreensaver(){
 resetIdleTimer(); /* arm the very first countdown, not just re-arms after activity */
 
 /* ============================================================
-   BSOD EASTER EGG — a brief, obviously-fake crash screen. Skipped
+   BSOD EASTER EGG. a brief, obviously-fake crash screen. Skipped
    outright for reduced-motion visitors per the spec; it's a joke, not
    something anyone should have sprung on them.
    ============================================================ */
@@ -2262,7 +2262,7 @@ document.getElementById("mine-grid").addEventListener("contextmenu", function(e)
 document.getElementById("mine-face").addEventListener("click", startMinesweeper);
 
 /* ============================================================
-   HISTORY BOWL TRIVIA — three questions, styled after the Minesweeper
+   HISTORY BOWL TRIVIA. three questions, styled after the Minesweeper
    HUD (counter + a face that reacts to right/wrong answers).
    ============================================================ */
 var quizState = { idx:0, score:0, answered:false };
@@ -2324,9 +2324,9 @@ function startQuiz(){
 startQuiz();
 
 /* ============================================================
-   MY WRITING — auto-loads the latest posts from Substack's RSS
+   MY WRITING. auto-loads the latest posts from Substack's RSS
    feed. Browsers block a direct cross-origin fetch of most RSS
-   feeds (no CORS header — they're built for feed readers, not
+   feeds (no CORS header. they're built for feed readers, not
    client JS), so this tries direct first, falls back to a public
    CORS proxy, and only shows a "visit Substack directly" message
    if both fail. Fetched once, the first time the window opens.
@@ -2353,7 +2353,7 @@ function renderWritingPosts(items){
   var list = document.getElementById("writing-list");
   var count = document.getElementById("writing-count");
   if(!items || !items.length){
-    list.innerHTML = '<div class="writing-status">No posts published yet on Substack &mdash; check back soon, or read directly on <a href="' + SUBSTACK_URL + '" target="_blank" rel="noopener">joshmetters.substack.com</a>.</div>';
+    list.innerHTML = '<div class="writing-status">No posts published yet on Substack. Check back soon, or read directly on <a href="' + SUBSTACK_URL + '" target="_blank" rel="noopener">joshmetters.substack.com</a>.</div>';
     count.textContent = "0 posts";
     return;
   }
@@ -2403,10 +2403,10 @@ function loadWritingFeed(){
 }
 
 /* ============================================================
-   MEDIA PLAYER — three original chiptune loops synthesized live
+   MEDIA PLAYER. three original chiptune loops synthesized live
    with WebAudio (square lead, triangle bass, 16th-note step
    sequencer), plus a bring-your-own YouTube embed slot. The
-   built-in tracks are original compositions, not covers — nothing
+   built-in tracks are original compositions, not covers. nothing
    here needs licensing or a streaming connection.
    ============================================================ */
 var CHIPTUNES = [
@@ -2482,7 +2482,7 @@ function playMusic(idx){
     mediaState.startedAt = mediaState.ctx.currentTime;
     mediaState.timerId = setInterval(mediaScheduler, 60);
     mediaState.lcdId = setInterval(updateMediaLCD, 500);
-  } catch(e){ /* audio unavailable — leave the player stopped */ }
+  } catch(e){ /* audio unavailable. leave the player stopped */ }
   updateMediaLCD();
 }
 
@@ -2554,12 +2554,12 @@ function parseYouTube(url){
 })();
 
 /* ============================================================
-   ACHIEVEMENT TOASTS — Win95-style balloons for finding the fun
+   ACHIEVEMENT TOASTS. Win95-style balloons for finding the fun
    parts. Unlocks persist in localStorage; each toast shows once.
    ============================================================ */
 var ACHIEVEMENTS = {
   "bsod":        { title:"Achievement unlocked", text:"\u{1F3C6} Crashed the computer. It's fine. It was decorative." },
-  "mine-win":    { title:"Achievement unlocked", text:"\u{1F3C6} Swept clean — beat Minesweeper on a résumé site." },
+  "mine-win":    { title:"Achievement unlocked", text:"\u{1F3C6} Swept clean. Beat Minesweeper on a résumé site." },
   "konami":      { title:"Cheat mode activated", text:"\u{1F3C6} +30 lives. They cannot be used for anything." },
   "screensaver": { title:"Achievement unlocked", text:"\u{1F3C6} Left long enough for the screensaver. Welcome back." },
   "clip-deny":   { title:"Achievement unlocked", text:"\u{1F3C6} Declined help from a paperclip. Historically accurate." }
@@ -2592,7 +2592,7 @@ function unlockAchievement(id){
 }
 
 /* ============================================================
-   KONAMI CODE — ↑↑↓↓←→←→BA
+   KONAMI CODE. ↑↑↓↓←→←→BA
    ============================================================ */
 var KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
 var konamiPos = 0;
@@ -2616,7 +2616,7 @@ document.addEventListener("keydown", function(e){
 });
 
 /* ============================================================
-   HIT COUNTER — the classic GeoCities gag. There's no server, so
+   HIT COUNTER. the classic GeoCities gag. There's no server, so
    the number is a deterministic date-seeded base plus this
    browser's own visit count: proudly fake, like the originals
    mostly were.
@@ -2639,7 +2639,7 @@ document.addEventListener("keydown", function(e){
 })();
 
 /* ============================================================
-   ASSISTANT — pops up once per session with one unhelpful
+   ASSISTANT. pops up once per session with one unhelpful
    observation. Dismissing it is itself an achievement.
    ============================================================ */
 var ASSISTANT_LINES = [
@@ -2694,7 +2694,7 @@ if(skipBootAnimation){
   setTimeout(function(){ finishBoot(false); }, 2800);
   /* Fallback gesture: if boot auto-advances before the visitor clicks or
      types on it, catch their very next interaction anywhere on the page
-     — an icon click, a button, a keypress — and use that instead. */
+    . an icon click, a button, a keypress. and use that instead. */
   ["pointerdown","keydown"].forEach(function(evt){
     document.addEventListener(evt, tryPlayChime, { once:true, passive:true });
   });
