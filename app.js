@@ -304,19 +304,14 @@ function renderIcons(root){
    the same dataset as the Experience.exe explorer instead of a
    hand-duplicated copy that quietly drifts out of sync with it. */
 
+/* Ongoing roles (size:"Ongoing") sort first, past/fixed-term roles
+   after -- relative order within each group otherwise unchanged. */
 var EXPERIENCE = [
   { icon:"trophy", role:"Managing Director, PM & New Ventures", org:"IDSA • Design @ GW", date:"Aug 2026-Present",
     fileType:"Leadership Role", size:"Ongoing",
     bullets:[
       "Leading partnership strategy and deal sourcing with top design-industry players.",
       "Building and launching new venture programs for the org from the ground up."
-    ]},
-  { icon:"gear", role:"Special Projects Intern", org:"StateCraft Labs", date:"Fall 2026",
-    url:"https://statecraft.ai/", fileType:"Internship", size:"1 sem",
-    bullets:[
-      "Building evaluation suites to stress-test AI agents executing real government workflows, working directly with the CTO and CEO.",
-      "Mining federal contract award and procurement data to inform agent development priorities, the same terrain TradeSimple runs on.",
-      "Applied AI research at the intersection of agent reliability and public-sector operations."
     ]},
   { icon:"chart", role:"Founder & Developer", org:"TradeSimple", date:"2026-Present",
     url:"https://tradesimpledev-production.up.railway.app/", fileType:"Founder-Track", size:"Ongoing",
@@ -333,13 +328,6 @@ var EXPERIENCE = [
       "Ran go-to-market across LinkedIn, X, Reddit, and Instagram; drove 229 visitors / 480 page views in the first launch week.",
       "Testing a model where local businesses list for free and Pitstop's pitch to them is increased foot traffic."
     ]},
-  { icon:"megaphone", role:"Campaign Fellow", org:"Wei-Li Tjong for NY State Assembly (AD-65)", date:"May-June 2026",
-    fileType:"Campaign Role", size:"2 mo",
-    bullets:[
-      "Knocked 400+ doors and ran 500+ literature drops in a competitive six-way Democratic primary.",
-      "Built a verified 27-location senior-center list and ran Chinese-language outreach to the district's Asian electorate, a voter bloc central to the campaign's path to victory.",
-      "Tracked and reported real-time turnout at polling sites to campaign leadership on election day."
-    ]},
   { icon:"megaphone", role:"Deputy Regional Lead", org:"Students for Mental Health Action", date:"Dec 2025-Present",
     fileType:"Advocacy Role", size:"Ongoing",
     bullets:[
@@ -351,6 +339,20 @@ var EXPERIENCE = [
     bullets:[
       "Research and write on Indo-Pacific trade dynamics, economic statecraft, and cross-Strait signaling.",
       "Synthesized 50+ scholarly and primary government sources into a four-case comparative analysis, under review at the GW Collegiate Journal of Chinese Affairs."
+    ]},
+  { icon:"gear", role:"Special Projects Intern", org:"StateCraft Labs", date:"Fall 2026",
+    url:"https://statecraft.ai/", fileType:"Internship", size:"1 sem",
+    bullets:[
+      "Building evaluation suites to stress-test AI agents executing real government workflows, working directly with the CTO and CEO.",
+      "Mining federal contract award and procurement data to inform agent development priorities, the same terrain TradeSimple runs on.",
+      "Applied AI research at the intersection of agent reliability and public-sector operations."
+    ]},
+  { icon:"megaphone", role:"Campaign Fellow", org:"Wei-Li Tjong for NY State Assembly (AD-65)", date:"May-June 2026",
+    fileType:"Campaign Role", size:"2 mo",
+    bullets:[
+      "Knocked 400+ doors and ran 500+ literature drops in a competitive six-way Democratic primary.",
+      "Built a verified 27-location senior-center list and ran Chinese-language outreach to the district's Asian electorate, a voter bloc central to the campaign's path to victory.",
+      "Tracked and reported real-time turnout at polling sites to campaign leadership on election day."
     ]},
   { icon:"doc", role:"Policy & Research Intern", org:"New York League of Conservation Voters", date:"May-Aug 2025",
     fileType:"Internship", size:"4 mo",
