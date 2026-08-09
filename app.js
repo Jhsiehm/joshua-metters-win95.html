@@ -725,6 +725,7 @@ function openWindow(id){
   el.setAttribute("aria-label", app.title);
   focusWindow(id);
   closeStartMenu();
+  if(!el.classList.contains("maximized")) fitWindowToDesktop(el);
   requestAnimationFrame(function(){ el.setAttribute("tabindex", "-1"); el.focus({preventScroll:true}); });
   saveState();
   if(isFreshOpen){ animateWindowOpen(el); playClickSound(); }
@@ -850,6 +851,58 @@ function loadState(opts){
     });
   } catch(e){ /* ignore corrupt state */ }
   return restoredAny;
+}
+
+/* Keep a window inside the desktop bounds (taskbar reserved). Important
+   for laptops and short viewports so Welcome.exe never opens clipped. */
+function fitWindowToDesktop(el){
+  if(!el) return;
+  var desk = document.getElementById("desktop");
+  if(!desk) return;
+  var dr = desk.getBoundingClientRect();
+  var taskbar = 32;
+  var pad = 8;
+  var maxW = Math.max(260, dr.width - pad * 2);
+  var maxH = Math.max(180, dr.height - taskbar - pad);
+  var w = el.offsetWidth || parseInt(el.style.width, 10) || 0;
+  var h = el.offsetHeight || parseInt(el.style.height, 10) || 0;
+  var left = parseInt(el.style.left, 10); if(isNaN(left)) left = 0;
+  var top = parseInt(el.style.top, 10); if(isNaN(top)) top = 0;
+  if(w > maxW){ w = maxW; el.style.width = w + "px"; }
+  if(h > maxH){ h = maxH; el.style.height = h + "px"; }
+  if(left + w > dr.width - pad) left = Math.max(pad, dr.width - w - pad);
+  if(top + h > dr.height - taskbar - pad) top = Math.max(0, dr.height - taskbar - h - pad);
+  if(left < 0) left = 0;
+  if(top < 0) top = 0;
+  el.style.left = left + "px";
+  el.style.top = top + "px";
+}
+
+/* Size Welcome for the current desktop: roomy on large screens, shorter
+   on laptop heights so the status bar and CTAs stay on-screen. */
+function sizeWelcomeForViewport(){
+  var el = document.getElementById("win-welcome");
+  var desk = document.getElementById("desktop");
+  if(!el || !desk) return;
+  if(window.matchMedia("(max-width:760px)").matches) return; /* CSS fullscreen */
+  var dr = desk.getBoundingClientRect();
+  var taskbar = 32;
+  var pad = 8;
+  var shortLaptop = dr.height < 700;
+  var narrowLaptop = dr.width < 1100;
+  var top = shortLaptop ? 12 : 36;
+  var left = narrowLaptop ? 24 : 70;
+  var maxW = dr.width - left - pad;
+  var maxH = dr.height - taskbar - top - pad;
+  var w = Math.min(narrowLaptop ? 480 : 520, maxW);
+  var h = Math.min(shortLaptop ? 440 : 500, maxH);
+  w = Math.max(320, w);
+  h = Math.max(300, h);
+  el.style.left = left + "px";
+  el.style.top = top + "px";
+  el.style.width = Math.floor(w) + "px";
+  el.style.height = Math.floor(h) + "px";
+  fitWindowToDesktop(el);
 }
 
 /* Runs once, right after the boot screen clears. Geometry from the last
@@ -1710,12 +1763,24 @@ applyWallpaper(currentWallpaper);
    postBootSetup), answers "who is this" before anything else does.
    ============================================================ */
 function openWelcomeWindow(){
+  sizeWelcomeForViewport();
   openWindow("welcome");
+  fitWindowToDesktop(document.getElementById("win-welcome"));
   /* Focus the default dialog button so Enter works like a Win95 msgbox.
      Default is Projects. résumé stays available, not the first shove. */
   var defBtn = document.getElementById("welcome-projects");
   if(defBtn) requestAnimationFrame(function(){ defBtn.focus({preventScroll:true}); });
 }
+window.addEventListener("resize", function(){
+  /* Clamp open windows into the new desktop bounds. Don't reset the
+     user's drag position unless the window would hang off-screen. */
+  Object.keys(openApps).forEach(function(id){
+    var st = openApps[id];
+    if(!st || !st.el || st.minimized) return;
+    if(st.el.classList.contains("maximized")) return;
+    fitWindowToDesktop(st.el);
+  });
+});
 document.getElementById("welcome-projects").addEventListener("click", function(){
   openWindow("projects");
 });
