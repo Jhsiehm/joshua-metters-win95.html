@@ -1799,46 +1799,121 @@ var WALLPAPER_KEY = "joshuaos-wallpaper";
 var currentWallpaper = "teal";
 try{ var savedWp = localStorage.getItem(WALLPAPER_KEY); if(savedWp && WALLPAPERS[savedWp]) currentWallpaper = savedWp; } catch(e){}
 
+function wallpaperAssetUrl(rel){
+  if(!rel) return "";
+  try{ return new URL(rel, document.baseURI || location.href).href; }
+  catch(e){ return rel; }
+}
+
+function wallpaperBackground(wp){
+  if(!wp) return "";
+  if(wp.type === "video" && wp.poster){
+    return '#05050c url("' + wallpaperAssetUrl(wp.poster) + '") no-repeat center center / cover';
+  }
+  return wp.css;
+}
+
+function tryPlayWallpaper(el){
+  if(!el || reducedMotion) return;
+  el.muted = true;
+  el.defaultMuted = true;
+  el.volume = 0;
+  el.loop = true;
+  el.autoplay = true;
+  el.playsInline = true;
+  el.setAttribute("muted", "");
+  el.setAttribute("playsinline", "");
+  el.setAttribute("webkit-playsinline", "");
+  var playAttempt = el.play();
+  if(playAttempt && playAttempt.catch) playAttempt.catch(function(){ /* retry on canplay / next gesture */ });
+}
+
+function armWallpaperVideo(el){
+  if(!el || el._wpArmed) return;
+  el._wpArmed = true;
+  function retry(){ if(el._wpWantPlay && !reducedMotion) tryPlayWallpaper(el); }
+  el.addEventListener("canplay", retry);
+  el.addEventListener("loadeddata", retry);
+  el.addEventListener("playing", function(){
+    if(el._wpWantPlay) el.hidden = false;
+  });
+  el.addEventListener("error", function(){
+    el.hidden = true; /* CSS poster on the desktop / mini-monitor stays visible */
+  });
+}
+
 function bindWallpaperVideo(el, wp, shouldPlay){
   if(!el) return;
+  armWallpaperVideo(el);
   if(!wp || wp.type !== "video"){
-    el.pause();
+    el._wpWantPlay = false;
+    try{ el.pause(); } catch(e){}
     el.removeAttribute("src");
+    el.removeAttribute("poster");
+    try{ el.load(); } catch(e){}
     el.hidden = true;
     return;
   }
-  if(el.getAttribute("src") !== wp.src){
-    el.poster = wp.poster || "";
-    el.src = wp.src;
-  }
-  if(shouldPlay && !reducedMotion){
-    el.hidden = false;
-    var playAttempt = el.play();
-    if(playAttempt && playAttempt.catch) playAttempt.catch(function(){});
-  } else {
-    el.pause();
+
+  var absSrc = wallpaperAssetUrl(wp.src);
+  var absPoster = wallpaperAssetUrl(wp.poster);
+  el.poster = absPoster;
+  el.muted = true;
+  el.defaultMuted = true;
+  el.loop = true;
+  el.autoplay = true;
+  el.playsInline = true;
+  el.preload = "auto";
+  el._wpWantPlay = !!(shouldPlay && !reducedMotion);
+
+  /* Unhide before play() so [hidden]{display:none !important} does not
+     abort the load. If autoplay is blocked, the poster CSS behind the
+     video still shows a Taipei still. */
+  if(el._wpWantPlay) el.hidden = false;
+  else {
+    try{ el.pause(); } catch(e){}
     el.hidden = true;
   }
+
+  var already = el.src === absSrc || el.currentSrc === absSrc || el.getAttribute("src") === absSrc;
+  if(!already){
+    el.src = absSrc;
+    try{ el.load(); } catch(e){}
+  }
+  if(el._wpWantPlay) tryPlayWallpaper(el);
 }
 
 function applyWallpaper(key){
   if(!WALLPAPERS[key]) return;
   var wp = WALLPAPERS[key];
-  document.getElementById("desktop").style.background = wp.css;
+  document.getElementById("desktop").style.background = wallpaperBackground(wp);
   bindWallpaperVideo(document.getElementById("desktop-video-wp"), wp, true);
   currentWallpaper = key;
 }
+
+function resumeDesktopWallpaper(){
+  if(typeof plainView !== "undefined" && plainView && plainView.classList.contains("visible")) return;
+  var ss = document.getElementById("screensaver");
+  if(ss && !ss.hidden) return;
+  var wp = WALLPAPERS[currentWallpaper];
+  if(!wp || wp.type !== "video") return;
+  bindWallpaperVideo(document.getElementById("desktop-video-wp"), wp, true);
+}
+
 applyWallpaper(currentWallpaper);
 
 document.addEventListener("visibilitychange", function(){
-  var vid = document.getElementById("desktop-video-wp");
   var wp = WALLPAPERS[currentWallpaper];
-  if(!vid || !wp || wp.type !== "video" || reducedMotion) return;
-  if(document.hidden) vid.pause();
-  else {
-    var playAttempt = vid.play();
-    if(playAttempt && playAttempt.catch) playAttempt.catch(function(){});
+  if(!wp || wp.type !== "video" || reducedMotion) return;
+  if(document.hidden){
+    var vid = document.getElementById("desktop-video-wp");
+    if(vid) try{ vid.pause(); } catch(e){}
+  } else {
+    resumeDesktopWallpaper();
   }
+});
+["pointerdown", "keydown"].forEach(function(evt){
+  document.addEventListener(evt, resumeDesktopWallpaper, { passive:true });
 });
 
 (function(){
@@ -1862,7 +1937,7 @@ document.addEventListener("visibilitychange", function(){
   function previewWallpaper(key){
     var wp = WALLPAPERS[key];
     if(!wp) return;
-    previewScreen.style.background = wp.css;
+    previewScreen.style.background = wallpaperBackground(wp);
     bindWallpaperVideo(previewVideo, wp, true);
   }
 
@@ -1873,18 +1948,23 @@ document.addEventListener("visibilitychange", function(){
       var item = document.createElement("button");
       item.type = "button";
       item.className = "disp-wp-item" + (key === pendingWallpaper ? " active" : "");
-      item.innerHTML = '<span class="disp-wp-swatch" style="background:' + wp.css + ';"></span><span>' + wp.label + (wp.type === "video" ? " \u266A" : "") + "</span>";
+      item.innerHTML = '<span class="disp-wp-swatch" style="background:' + wallpaperBackground(wp) + ';"></span><span>' + wp.label + (wp.type === "video" ? " \u266A" : "") + "</span>";
       item.addEventListener("click", function(){
         pendingWallpaper = key;
         previewWallpaper(key);
         listWrap.querySelectorAll(".disp-wp-item").forEach(function(el){ el.classList.remove("active"); });
         item.classList.add("active");
       });
+      item.addEventListener("dblclick", function(){
+        pendingWallpaper = key;
+        previewWallpaper(key);
+        commitWallpaper();
+      });
       listWrap.appendChild(item);
     });
   }
   renderWallpaperList();
-  previewScreen.style.background = WALLPAPERS[currentWallpaper].css;
+  previewScreen.style.background = wallpaperBackground(WALLPAPERS[currentWallpaper]);
 
   function commitWallpaper(){
     applyWallpaper(pendingWallpaper);
