@@ -813,6 +813,9 @@ function openWindow(id){
   if(id === "writing" && !writingLoaded){
     loadWritingFeed();
   }
+  if(id === "display" && typeof window.syncWallpaperPicker === "function"){
+    window.syncWallpaperPicker();
+  }
 }
 
 function closeWindow(id){
@@ -824,6 +827,9 @@ function closeWindow(id){
     stopMusic();
     var ytFrame = document.getElementById("media-yt-frame");
     if(ytFrame) ytFrame.innerHTML = "";
+  }
+  if(id === "display"){
+    bindWallpaperVideo(document.getElementById("disp-preview-video"), null, false);
   }
   var el = st.el;
   el.classList.remove("active");
@@ -998,6 +1004,8 @@ function sizeWelcomeForViewport(){
 function postBootSetup(){
   loadState({ restoreOpen: false });
   if(typeof openWelcomeWindow === "function") openWelcomeWindow();
+  /* Boot ends on a click/key, which is the gesture autoplay needs. */
+  if(typeof applyWallpaper === "function") applyWallpaper(currentWallpaper);
 }
 
 document.querySelectorAll(".win-window").forEach(function(win){
@@ -1279,7 +1287,8 @@ var RUN_ALIASES = {
   minesweeper:"minesweeper", mines:"minesweeper",
   media:"media", music:"media", mediaplayer:"media",
   writing:"writing", substack:"writing", blog:"writing",
-  bin:"bin", recycle:"bin", recyclebin:"bin"
+  bin:"bin", recycle:"bin", recyclebin:"bin",
+  taipei:"taipei-wallpaper", taipeiafterhours:"taipei-wallpaper"
 };
 var runOverlay = document.getElementById("run-overlay");
 var runInput = document.getElementById("run-input");
@@ -1296,7 +1305,11 @@ function submitRun(){
   var target = RUN_ALIASES[raw];
   var typedValue = runInput.value;
   closeRunDialog(); /* always close first. never stack this overlay under the message box */
-  if(target) openWindow(target);
+  if(target === "taipei-wallpaper"){
+    if(typeof window.commitNamedWallpaper === "function") window.commitNamedWallpaper("taipei");
+    else applyWallpaper("taipei");
+    openWindow("display");
+  } else if(target) openWindow(target);
   else alertBox("Cannot Run Program", "Cannot find '" + (typedValue || "(nothing)") + "'. Make sure you typed the name correctly, or try Start → Programs instead.");
 }
 document.getElementById("start-run").addEventListener("click", openRunDialog);
@@ -1753,7 +1766,8 @@ document.getElementById("applet-addremove").addEventListener("click", function()
 
 /* ============================================================
    DISPLAY PROPERTIES. three original wallpapers (all hand-drawn
-   gradients/shapes, nothing scanned or copied), a working Screen
+   gradients/shapes, nothing scanned or copied), plus one live
+   video easter egg: Taipei After Hours. a working Screen
    Saver tab wired to the real idle timer, and a decorative
    Appearance tab that's honest about being decorative.
    ============================================================ */
@@ -1769,6 +1783,15 @@ var WALLPAPERS = {
   teal: {
     label:"Classic Teal",
     css:"var(--desktop-teal)"
+  },
+  /* Live wallpaper easter egg. Royalty-free Taipei 101 night clip
+     (Pexels 8915223, photographer 文牲). muted, looping, behind icons. */
+  taipei: {
+    label:"Taipei After Hours",
+    type:"video",
+    src:"wallpapers/taipei-after-hours.mp4",
+    poster:"wallpapers/taipei-after-hours.jpg",
+    css:'#05050c url("wallpapers/taipei-after-hours.jpg") no-repeat center center / cover'
   }
 };
 
@@ -1776,12 +1799,47 @@ var WALLPAPER_KEY = "joshuaos-wallpaper";
 var currentWallpaper = "teal";
 try{ var savedWp = localStorage.getItem(WALLPAPER_KEY); if(savedWp && WALLPAPERS[savedWp]) currentWallpaper = savedWp; } catch(e){}
 
+function bindWallpaperVideo(el, wp, shouldPlay){
+  if(!el) return;
+  if(!wp || wp.type !== "video"){
+    el.pause();
+    el.removeAttribute("src");
+    el.hidden = true;
+    return;
+  }
+  if(el.getAttribute("src") !== wp.src){
+    el.poster = wp.poster || "";
+    el.src = wp.src;
+  }
+  if(shouldPlay && !reducedMotion){
+    el.hidden = false;
+    var playAttempt = el.play();
+    if(playAttempt && playAttempt.catch) playAttempt.catch(function(){});
+  } else {
+    el.pause();
+    el.hidden = true;
+  }
+}
+
 function applyWallpaper(key){
   if(!WALLPAPERS[key]) return;
-  document.getElementById("desktop").style.background = WALLPAPERS[key].css;
+  var wp = WALLPAPERS[key];
+  document.getElementById("desktop").style.background = wp.css;
+  bindWallpaperVideo(document.getElementById("desktop-video-wp"), wp, true);
   currentWallpaper = key;
 }
 applyWallpaper(currentWallpaper);
+
+document.addEventListener("visibilitychange", function(){
+  var vid = document.getElementById("desktop-video-wp");
+  var wp = WALLPAPERS[currentWallpaper];
+  if(!vid || !wp || wp.type !== "video" || reducedMotion) return;
+  if(document.hidden) vid.pause();
+  else {
+    var playAttempt = vid.play();
+    if(playAttempt && playAttempt.catch) playAttempt.catch(function(){});
+  }
+});
 
 (function(){
   var win = document.getElementById("win-display");
@@ -1797,8 +1855,16 @@ applyWallpaper(currentWallpaper);
   });
 
   var previewScreen = document.getElementById("disp-preview-screen");
+  var previewVideo = document.getElementById("disp-preview-video");
   var listWrap = document.getElementById("disp-wallpaper-list");
   var pendingWallpaper = currentWallpaper;
+
+  function previewWallpaper(key){
+    var wp = WALLPAPERS[key];
+    if(!wp) return;
+    previewScreen.style.background = wp.css;
+    bindWallpaperVideo(previewVideo, wp, true);
+  }
 
   function renderWallpaperList(){
     listWrap.innerHTML = "";
@@ -1807,10 +1873,10 @@ applyWallpaper(currentWallpaper);
       var item = document.createElement("button");
       item.type = "button";
       item.className = "disp-wp-item" + (key === pendingWallpaper ? " active" : "");
-      item.innerHTML = '<span class="disp-wp-swatch" style="background:' + wp.css + ';"></span><span>' + wp.label + "</span>";
+      item.innerHTML = '<span class="disp-wp-swatch" style="background:' + wp.css + ';"></span><span>' + wp.label + (wp.type === "video" ? " \u266A" : "") + "</span>";
       item.addEventListener("click", function(){
         pendingWallpaper = key;
-        previewScreen.style.background = wp.css;
+        previewWallpaper(key);
         listWrap.querySelectorAll(".disp-wp-item").forEach(function(el){ el.classList.remove("active"); });
         item.classList.add("active");
       });
@@ -1823,11 +1889,25 @@ applyWallpaper(currentWallpaper);
   function commitWallpaper(){
     applyWallpaper(pendingWallpaper);
     try{ localStorage.setItem(WALLPAPER_KEY, pendingWallpaper); } catch(e){}
+    if(pendingWallpaper === "taipei") unlockAchievement("taipei");
   }
+  window.syncWallpaperPicker = function(key){
+    if(key && WALLPAPERS[key]) pendingWallpaper = key;
+    renderWallpaperList();
+    previewWallpaper(pendingWallpaper);
+  };
+  window.commitNamedWallpaper = function(key){
+    if(!WALLPAPERS[key]) return;
+    pendingWallpaper = key;
+    renderWallpaperList();
+    previewWallpaper(key);
+    commitWallpaper();
+  };
   document.getElementById("disp-apply").addEventListener("click", commitWallpaper);
   document.getElementById("disp-ok").addEventListener("click", function(){
     commitWallpaper();
     closeWindow("display");
+    bindWallpaperVideo(previewVideo, null, false);
   });
 
   var ssToggle = document.getElementById("ss-enabled-toggle");
@@ -2129,12 +2209,14 @@ function showPlain(){
   finishBoot(false);
   plainView.classList.add("visible");
   desktopEl.style.display = "none";
+  bindWallpaperVideo(document.getElementById("desktop-video-wp"), null, false);
   var back = document.getElementById("plain-view-back");
   if(back) back.focus();
 }
 function hidePlain(){
   plainView.classList.remove("visible");
   desktopEl.style.display = "";
+  applyWallpaper(currentWallpaper);
 }
 document.getElementById("skip-to-plain").addEventListener("click", function(e){ e.preventDefault(); showPlain(); });
 document.getElementById("plain-view-toggle").addEventListener("click", function(e){ e.preventDefault(); showPlain(); });
@@ -2191,6 +2273,9 @@ function triggerScreensaver(){
   }
   ss.hidden = false;
 
+  var deskVid = document.getElementById("desktop-video-wp");
+  if(deskVid && !deskVid.hidden) deskVid.pause();
+
   function tick(){
     var w = window.innerWidth, h = window.innerHeight;
     ssIcons.forEach(function(ic){
@@ -2215,6 +2300,7 @@ function dismissScreensaver(){
   ssFrame = null;
   ss.innerHTML = "";
   unlockAchievement("screensaver"); /* awarded on return, so the toast is actually seen */
+  if(typeof applyWallpaper === "function") applyWallpaper(currentWallpaper);
 }
 
 ["mousemove", "mousedown", "keydown", "touchstart", "scroll"].forEach(function(evt){
@@ -2753,7 +2839,8 @@ var ACHIEVEMENTS = {
   "mine-win":    { title:"Achievement unlocked", text:"\u{1F3C6} Swept clean. Beat Minesweeper on a résumé site." },
   "konami":      { title:"Cheat mode activated", text:"\u{1F3C6} +30 lives. They cannot be used for anything." },
   "screensaver": { title:"Achievement unlocked", text:"\u{1F3C6} Left long enough for the screensaver. Welcome back." },
-  "clip-deny":   { title:"Achievement unlocked", text:"\u{1F3C6} Declined help from a paperclip. Historically accurate." }
+  "clip-deny":   { title:"Achievement unlocked", text:"\u{1F3C6} Declined help from a paperclip. Historically accurate." },
+  "taipei":      { title:"Achievement unlocked", text:"\u{1F3C6} After hours in Taipei. You found the live wallpaper." }
 };
 var ACH_KEY = "joshuaos-achievements";
 

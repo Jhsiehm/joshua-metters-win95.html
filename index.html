@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="An interactive résumé styled as a Windows 95 desktop. Built and playable, not just a screenshot of one.">
 <meta name="twitter:image" content="og-image.png">
 
-<link rel="stylesheet" href="styles.css?v=bc749ab1b4">
+<link rel="stylesheet" href="styles.css?v=tah91c2e11">
 </head>
 <body>
 
@@ -145,6 +145,8 @@
 </article>
 
 <div id="desktop" class="desktop" hidden aria-hidden="true">
+  <!-- live wallpaper easter egg; muted, looping, pointer-events none -->
+  <video id="desktop-video-wp" class="desktop-video-wp" muted loop playsinline preload="metadata" hidden aria-hidden="true"></video>
 
   <div class="icons" id="desktop-icons">
     <button class="icon" data-app="resume"><span class="icon-slot" data-icon="doc"></span>My Resume.txt</button>
@@ -503,7 +505,7 @@ Relevant coursework:
   </section>
 
   <!-- ============ DISPLAY PROPERTIES ============ -->
-  <section class="win-window raised" id="win-display" data-app="display" style="left:220px;top:60px;width:340px;height:420px;">
+  <section class="win-window raised" id="win-display" data-app="display" style="left:220px;top:60px;width:340px;height:452px;">
     <div class="win-titlebar" data-drag>
       <span class="icon-slot" data-icon="computer"></span>
       <span class="win-title">Display Properties</span>
@@ -520,7 +522,7 @@ Relevant coursework:
       </div>
 
       <div class="disp-panel" id="disp-panel-background">
-        <div class="disp-preview"><div class="disp-preview-screen" id="disp-preview-screen"></div></div>
+        <div class="disp-preview"><div class="disp-preview-screen" id="disp-preview-screen"><video id="disp-preview-video" class="disp-preview-video" muted loop playsinline preload="metadata" hidden aria-hidden="true"></video></div></div>
         <div class="disp-wallpaper-list" id="disp-wallpaper-list"></div>
       </div>
 
@@ -866,6 +868,6 @@ The current build is fine. This is a decorative crash.</p>
 </div>
 
 
-<script src="app.js?v=7c5aeee383"></script>
+<script src="app.js?v=tah91c2e11"></script>
 </body>
 </html>
