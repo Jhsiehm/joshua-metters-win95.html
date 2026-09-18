@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="An interactive résumé styled as a Windows 95 desktop. Built and playable, not just a screenshot of one.">
 <meta name="twitter:image" content="og-image.png">
 
-<link rel="stylesheet" href="styles.css?v=bc749ab1b4">
+<link rel="stylesheet" href="styles.css?v=tahpix25">
 </head>
 <body>
 
@@ -145,8 +145,9 @@
 </article>
 
 <div id="desktop" class="desktop" hidden aria-hidden="true">
-
   <div class="icons" id="desktop-icons">
+    <!-- pixel Taipei After Hours wallpaper. built in JS; click the skyline -->
+    <div id="taipei-scene" class="taipei-scene" hidden aria-hidden="true"></div>
     <button class="icon" data-app="resume"><span class="icon-slot" data-icon="doc"></span>My Resume.txt</button>
     <button class="icon" data-app="projects"><span class="icon-slot" data-icon="chart"></span>Projects</button>
     <button class="icon" data-app="experience"><span class="icon-slot" data-icon="folder"></span>Experience</button>
@@ -503,7 +504,7 @@ Relevant coursework:
   </section>
 
   <!-- ============ DISPLAY PROPERTIES ============ -->
-  <section class="win-window raised" id="win-display" data-app="display" style="left:220px;top:60px;width:340px;height:420px;">
+  <section class="win-window raised" id="win-display" data-app="display" style="left:220px;top:60px;width:340px;height:478px;">
     <div class="win-titlebar" data-drag>
       <span class="icon-slot" data-icon="computer"></span>
       <span class="win-title">Display Properties</span>
@@ -520,8 +521,9 @@ Relevant coursework:
       </div>
 
       <div class="disp-panel" id="disp-panel-background">
-        <div class="disp-preview"><div class="disp-preview-screen" id="disp-preview-screen"></div></div>
+        <div class="disp-preview"><div class="disp-preview-screen" id="disp-preview-screen"><div id="disp-preview-taipei" class="taipei-scene taipei-preview" hidden></div></div></div>
         <div class="disp-wallpaper-list" id="disp-wallpaper-list"></div>
+        <p class="disp-apply-hint">Select a wallpaper, then Apply. On Taipei After Hours, click the skyline for secrets.</p>
       </div>
 
       <div class="disp-panel" id="disp-panel-screensaver" hidden>
@@ -538,7 +540,7 @@ Relevant coursework:
       </div>
     </div>
     <div class="win-statusbar">
-      <button class="btn-raised" id="disp-apply" style="margin-left:auto;">Apply</button>
+      <button class="btn-raised btn-default" id="disp-apply" style="margin-left:auto;">Apply</button>
       <button class="btn-raised" id="disp-ok">OK</button>
     </div>
     <div class="resize-handle" data-resize></div>
@@ -866,6 +868,6 @@ The current build is fine. This is a decorative crash.</p>
 </div>
 
 
-<script src="app.js?v=7c5aeee383"></script>
+<script src="app.js?v=tahpix25"></script>
 </body>
 </html>

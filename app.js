@@ -813,6 +813,9 @@ function openWindow(id){
   if(id === "writing" && !writingLoaded){
     loadWritingFeed();
   }
+  if(id === "display" && typeof window.syncWallpaperPicker === "function"){
+    window.syncWallpaperPicker();
+  }
 }
 
 function closeWindow(id){
@@ -824,6 +827,9 @@ function closeWindow(id){
     stopMusic();
     var ytFrame = document.getElementById("media-yt-frame");
     if(ytFrame) ytFrame.innerHTML = "";
+  }
+  if(id === "display"){
+    setTaipeiPreview(false);
   }
   var el = st.el;
   el.classList.remove("active");
@@ -998,6 +1004,8 @@ function sizeWelcomeForViewport(){
 function postBootSetup(){
   loadState({ restoreOpen: false });
   if(typeof openWelcomeWindow === "function") openWelcomeWindow();
+  /* Boot ends on a click/key, which is the gesture autoplay needs. */
+  if(typeof applyWallpaper === "function") applyWallpaper(currentWallpaper);
 }
 
 document.querySelectorAll(".win-window").forEach(function(win){
@@ -1279,7 +1287,8 @@ var RUN_ALIASES = {
   minesweeper:"minesweeper", mines:"minesweeper",
   media:"media", music:"media", mediaplayer:"media",
   writing:"writing", substack:"writing", blog:"writing",
-  bin:"bin", recycle:"bin", recyclebin:"bin"
+  bin:"bin", recycle:"bin", recyclebin:"bin",
+  taipei:"taipei-wallpaper", taipeiafterhours:"taipei-wallpaper"
 };
 var runOverlay = document.getElementById("run-overlay");
 var runInput = document.getElementById("run-input");
@@ -1296,7 +1305,11 @@ function submitRun(){
   var target = RUN_ALIASES[raw];
   var typedValue = runInput.value;
   closeRunDialog(); /* always close first. never stack this overlay under the message box */
-  if(target) openWindow(target);
+  if(target === "taipei-wallpaper"){
+    if(typeof window.commitNamedWallpaper === "function") window.commitNamedWallpaper("taipei");
+    else applyWallpaper("taipei");
+    openWindow("display");
+  } else if(target) openWindow(target);
   else alertBox("Cannot Run Program", "Cannot find '" + (typedValue || "(nothing)") + "'. Make sure you typed the name correctly, or try Start → Programs instead.");
 }
 document.getElementById("start-run").addEventListener("click", openRunDialog);
@@ -1753,10 +1766,428 @@ document.getElementById("applet-addremove").addEventListener("click", function()
 
 /* ============================================================
    DISPLAY PROPERTIES. three original wallpapers (all hand-drawn
-   gradients/shapes, nothing scanned or copied), a working Screen
-   Saver tab wired to the real idle timer, and a decorative
-   Appearance tab that's honest about being decorative.
+   gradients/shapes, nothing scanned or copied), plus one pixel
+   easter egg: Taipei After Hours. animated SVG skyline with
+   clickable secrets. a working Screen Saver tab wired to the
+   real idle timer, and a decorative Appearance tab that's honest
+   about being decorative.
    ============================================================ */
+var TAIPEI_EGG_KEY = "joshuaos-taipei-eggs";
+var TAIPEI_EGGS = [
+  { id:"mountain", x:0, y:70, w:78, h:40, title:"Yangmingshan", text:"Sulfur vents, hiking trails, and a volcanic reminder that geology has opinions." },
+  { id:"river", x:0, y:166, w:320, h:14, title:"Keelung River", text:"Reflecting 101, and every pepper-bun decision made after midnight in Raohe." },
+  { id:"scooter", x:0, y:156, w:320, h:10, title:"The swarm", text:"Two wheels, one city, zero parking theory. Gogoro lights cut the night in half." },
+  { id:"mrt", x:0, y:110, w:196, h:12, title:"Taipei MRT", text:"On time, air-conditioned, and quietly judging your scooter." },
+  { id:"ximending", x:134, y:98, w:30, h:50, title:"Ximending", text:"Teenagers, neon, and the city's unofficial weekend operating system." },
+  { id:"market", x:54, y:126, w:44, h:24, title:"Raohe Night Market", text:"Queue for the pepper bun. This is not optional. This is policy." },
+  { id:"temple", x:28, y:114, w:26, h:36, title:"Longshan Temple", text:"Incense, lanterns, and a reminder that this city is older than the skyline." },
+  { id:"research", x:264, y:76, w:22, h:72, title:"China Affairs Forum", text:"Indo-Pacific trade dynamics, after hours. The briefing does not clock out." },
+  { id:"statecraft", x:226, y:80, w:20, h:68, title:"StateCraft Labs", text:"Evaluating government workflows from a window that never dims. Agent reliability, 8-bit edition." },
+  { id:"tradesimple", x:246, y:88, w:20, h:60, title:"TradeSimple Far East", text:"Imaginary Taipei branch. Federal contracts, lobbying filings, and a ticker that will not sleep." },
+  { id:"seven", x:2, y:124, w:26, h:26, title:"7-Eleven", text:"Open 24 hours because Taipei does not believe in closing. Steam buns in aisle two." },
+  { id:"ktv", x:116, y:106, w:16, h:44, title:"KTV", text:"Where policy debates go to become power ballads. Key of C, volume: reckless." },
+  { id:"noodles", x:78, y:126, w:18, h:24, title:"Beef noodles", text:"The national dish. Arguments about which shop is best are a contact sport." },
+  { id:"boba", x:98, y:124, w:16, h:26, title:"Boba", text:"The original startup. Unicorn status: milk tea. Tapioca: series A." },
+  { id:"pitstop", x:182, y:130, w:16, h:20, title:"Pitstop", text:"Even in Taipei you still need a bathroom and a snack between MRT stops." },
+  { id:"campaign", x:138, y:116, w:24, h:12, title:"AD-65", text:"Wei-Li Tjong for Assembly. Some field organizing never leaves the skyline." },
+  { id:"youbike", x:170, y:138, w:16, h:16, title:"YouBike", text:"Public goods, two wheels, one tap. The city's best argument for showing up." },
+  { id:"clock", x:108, y:84, w:12, h:14, title:"After hours", text:"The intern is still compiling. The skyline does not do business hours." },
+  { id:"cat", x:36, y:106, w:12, h:12, title:"Houtong called", text:"They want their cat back. The cat reviewed the offer and declined." },
+  { id:"dish", x:272, y:60, w:16, h:14, title:"Listening post", text:"Cross-Strait signaling, now in 8-bit. The dish is pointed at the interesting parts." },
+  { id:"bin", x:8, y:144, w:10, h:14, title:"Recycle Bin", text:"Even the Recycle Bin came to Taipei. Nothing in it. As usual." },
+  { id:"paperclip", x:230, y:94, w:10, h:12, title:"It looks like you're sightseeing", text:"Would you like help? Historically, no. The pepper bun line is that way." },
+  { id:"tower", x:52, y:48, w:10, h:32, title:"Elephant Mountain", text:"The hike people take just to photograph the building you already clicked." },
+  { id:"spire", x:196, y:4, w:30, h:144, title:"Taipei 101", text:"508 meters of showing off. The city's tallest r\u00e9sum\u00e9 bullet." },
+  { id:"moon", x:288, y:8, w:18, h:18, title:"Same moon", text:"Same moon as DC. Different time zone. Different night market." }
+];
+
+var TAIPEI_SWATCH = '#07071c url("data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 36" shape-rendering="crispEdges">' +
+  '<rect width="64" height="36" fill="#07071c"/>' +
+  '<rect x="40" y="2" width="2" height="22" fill="#9aa3b8"/>' +
+  '<rect x="37" y="8" width="8" height="20" fill="#3a3a58"/>' +
+  '<rect x="6" y="18" width="8" height="12" fill="#2a2048"/>' +
+  '<rect x="16" y="14" width="10" height="16" fill="#32325a"/>' +
+  '<rect x="28" y="16" width="8" height="14" fill="#2c2c50"/>' +
+  '<rect x="50" y="12" width="10" height="18" fill="#24244a"/>' +
+  '<rect x="0" y="32" width="64" height="4" fill="#16365c"/>' +
+  '</svg>'
+) + '") no-repeat center center / cover';
+
+function buildTaipeiSVG(withHits, idPrefix){
+  idPrefix = idPrefix || "tw";
+  function r(x, y, w, h, fill, cls, extra){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'"' +
+      (cls ? ' class="'+cls+'"' : '') + (extra ? ' '+extra : '') + '/>';
+  }
+  function winGrid(x, y, cols, rows, pal, cls){
+    var html = "";
+    var k = x * 9 + y * 3;
+    for(var j = 0; j < rows; j++){
+      for(var i = 0; i < cols; i++){
+        k++;
+        if(k % 6 === 0) continue;
+        html += r(x + i * 2, y + j * 2, 1, 1, pal[(i + j + x) % pal.length], cls,
+          'style="animation-delay:' + ((i + j) % 10) * 0.28 + 's"');
+      }
+    }
+    return html;
+  }
+  var s = [];
+  s.push('<svg class="taipei-svg" viewBox="0 0 320 180" preserveAspectRatio="xMidYMax slice" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">');
+  s.push('<defs><linearGradient id="'+idPrefix+'-sky" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#050514"/>' +
+    '<stop offset="52%" stop-color="#1a1250"/>' +
+    '<stop offset="100%" stop-color="#5a2d72"/>' +
+    '</linearGradient><linearGradient id="'+idPrefix+'-water" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#1a3a6e"/>' +
+    '<stop offset="100%" stop-color="#081428"/>' +
+    '</linearGradient></defs>');
+  s.push(r(0, 0, 320, 180, 'url(#'+idPrefix+'-sky)'));
+
+  var stars = [[12,8],[28,18],[40,6],[55,14],[70,9],[88,20],[100,7],[118,16],[140,5],[155,12],[170,9],[188,4],[210,11],[230,7],[248,15],[265,6],[278,19],[300,9],[310,14],[18,28],[48,24],[90,30],[130,22],[200,20],[240,26],[280,24],[60,4],[160,18],[250,4],[305,22],[34,36],[74,32],[148,28],[218,18],[268,32]];
+  stars.forEach(function(p, i){
+    s.push(r(p[0], p[1], 1, 1, i % 5 === 0 ? '#ffe9a8' : '#dfe8ff', 'tw-star',
+      'style="animation-delay:' + (i * 0.17) + 's"'));
+  });
+
+  s.push(r(292, 10, 12, 12, '#f4e4b0', 'tw-moon'));
+  s.push(r(294, 12, 3, 3, '#e2c878'));
+  s.push(r(300, 16, 2, 2, '#e2c878'));
+  s.push(r(296, 18, 2, 2, '#edd89a'));
+  s.push(r(289, 14, 2, 2, '#f7eec4'));
+
+  s.push('<g class="tw-firework tw-fw1">' + r(70,18,1,1,'#ff6b6b') + r(74,14,1,1,'#ffd93d') + r(66,14,1,1,'#6bcbff') + r(70,12,1,1,'#fff') + r(78,18,1,1,'#ff8ec8') + '</g>');
+  s.push('<g class="tw-firework tw-fw2">' + r(150,10,1,1,'#5dff7a') + r(154,6,1,1,'#ffe14a') + r(146,6,1,1,'#5ec8ff') + r(150,4,1,1,'#fff') + r(158,12,1,1,'#c07bff') + '</g>');
+  s.push('<g class="tw-firework tw-fw3">' + r(250,16,1,1,'#ffb020') + r(254,12,1,1,'#ff5b5b') + r(246,12,1,1,'#5ec8ff') + r(250,10,1,1,'#fff') + '</g>');
+
+  s.push('<g class="tw-plane">');
+  s.push(r(8, 16, 12, 3, '#c5cdd8'));
+  s.push(r(18, 15, 4, 2, '#9aa3b0'));
+  s.push(r(10, 14, 5, 2, '#d8dee6'));
+  s.push(r(6, 17, 3, 2, '#7a8490'));
+  s.push(r(20, 17, 2, 1, '#ff4d4d', 'tw-beacon'));
+  if(withHits){
+    s.push('<g class="tw-hit" data-egg="plane"><title>Songshan departure</title>' + r(6, 13, 18, 8, 'transparent') + '</g>');
+  }
+  s.push('</g>');
+
+  s.push(r(0, 86, 36, 62, '#12102a'));
+  s.push(r(20, 78, 40, 70, '#161232'));
+  s.push(r(48, 82, 32, 66, '#141028'));
+  s.push(r(0, 96, 80, 52, '#1a1535'));
+  s.push(r(54, 52, 4, 36, '#3a3a50'));
+  s.push(r(52, 50, 8, 4, '#4a4a62'));
+  s.push(r(55, 46, 2, 6, '#c8d0dc'));
+  s.push(r(55, 44, 2, 2, '#ff3b3b', 'tw-beacon'));
+
+  var skyline = [
+    [0,120,16,28,'#1a1a34'],[16,106,18,42,'#222248'],[34,98,22,50,'#281c3a'],
+    [56,110,14,38,'#1e1e40'],[70,94,20,54,'#262650'],[90,106,16,42,'#1c2444'],
+    [106,86,20,62,'#2a2050'],[126,90,22,58,'#241e48'],[148,102,14,46,'#1a2040'],
+    [162,84,16,64,'#2c2c58'],[178,96,16,52,'#22224a'],
+    [226,80,18,68,'#2a2a52'],[244,88,20,60,'#243056'],[264,76,18,72,'#1e2848'],
+    [282,98,16,50,'#262640'],[298,86,22,62,'#1c1c3c']
+  ];
+  var pal = ['#ffe08a', '#7ec8ff', '#ffb48a', '#c8f0ff'];
+  skyline.forEach(function(b){
+    s.push(r(b[0], b[1], b[2], b[3], b[4]));
+    s.push(r(b[0], b[1], b[2], 2, '#3a3a58'));
+    s.push(winGrid(b[0] + 2, b[1] + 4, Math.max(1, Math.floor((b[2] - 4) / 2)), Math.max(1, Math.floor((b[3] - 10) / 2)), pal, 'tw-win'));
+  });
+
+  s.push(r(108, 84, 10, 10, '#1a1a28'));
+  s.push(r(110, 86, 6, 6, '#d8c878', 'tw-lamp'));
+  s.push(r(112, 88, 2, 2, '#1a1a28'));
+
+  s.push(r(226, 80, 18, 68, '#24304c'));
+  s.push(winGrid(228, 84, 7, 28, ['#5dff7a', '#c8f0ff', '#ffe08a'], 'tw-win'));
+  s.push(r(228, 94, 8, 8, '#39d353'));
+
+  s.push(r(244, 88, 20, 60, '#1c3048'));
+  s.push(winGrid(246, 92, 8, 24, ['#7ec8ff', '#ffe08a'], 'tw-win'));
+  s.push(r(246, 90, 16, 4, '#1a8cff', 'tw-neon'));
+  s.push(r(248, 91, 3, 2, '#fff'));
+  s.push(r(252, 91, 8, 2, '#9ad0ff'));
+
+  s.push(r(272, 60, 10, 4, '#8a93a0'));
+  s.push(r(276, 56, 8, 8, '#6a7380'));
+  s.push(r(280, 54, 2, 2, '#c8d0dc'));
+  s.push(r(274, 64, 4, 12, '#5a6270'));
+
+  s.push('<g class="tw-101">');
+  s.push(r(211, 6, 2, 22, '#c8d0dc'));
+  s.push(r(210, 4, 4, 3, '#e8eef4'));
+  s.push(r(211, 3, 2, 2, '#ff3b3b', 'tw-beacon'));
+  var sections = [
+    [208,26,8,10],[206,36,12,14],[204,50,16,16],[202,66,20,18],[200,84,24,20],[198,104,28,44]
+  ];
+  sections.forEach(function(sec, idx){
+    s.push(r(sec[0], sec[1], sec[2], sec[3], idx % 2 ? '#323250' : '#3a3a5a'));
+    s.push(r(sec[0] - 1, sec[1] + sec[3] - 2, sec[2] + 2, 2, '#24243a'));
+    s.push(winGrid(sec[0] + 2, sec[1] + 2, Math.floor((sec[2] - 4) / 2), Math.floor((sec[3] - 4) / 2),
+      ['#ffe08a', '#7ec8ff', '#ffd6a0'], 'tw-win-101'));
+  });
+  s.push(r(196, 146, 32, 2, '#2a2a40'));
+  s.push('</g>');
+
+  s.push(r(0, 114, 198, 3, '#3a3a48'));
+  s.push(r(0, 117, 198, 2, '#2a2a38'));
+  s.push('<g class="tw-train">');
+  s.push(r(20, 108, 28, 8, '#c0c8d4'));
+  s.push(r(22, 110, 4, 4, '#7ec8ff', 'tw-win'));
+  s.push(r(28, 110, 4, 4, '#7ec8ff', 'tw-win'));
+  s.push(r(34, 110, 4, 4, '#ffe08a', 'tw-win'));
+  s.push(r(40, 110, 4, 4, '#7ec8ff', 'tw-win'));
+  s.push(r(18, 111, 2, 4, '#d82828', 'tw-neon'));
+  s.push('</g>');
+
+  s.push(r(2, 124, 24, 24, '#fff8f0'));
+  s.push(r(2, 124, 24, 6, '#ff7a00'));
+  s.push(r(2, 130, 24, 4, '#008a3a'));
+  s.push(r(8, 126, 4, 4, '#fff'));
+  s.push(r(14, 132, 8, 8, '#1a1a1a', 'tw-win'));
+  s.push(r(4, 138, 6, 8, '#7ec8ff', 'tw-win'));
+  s.push(r(16, 140, 8, 6, '#ffb48a', 'tw-lamp'));
+
+  s.push(r(30, 120, 24, 8, '#c41e3a'));
+  s.push(r(32, 118, 20, 4, '#e23a4a'));
+  s.push(r(36, 116, 12, 4, '#ff5a5a'));
+  s.push(r(38, 114, 8, 4, '#ffd36a'));
+  s.push(r(34, 128, 16, 20, '#f4e4c1'));
+  s.push(r(36, 132, 4, 8, '#7a2010', 'tw-win'));
+  s.push(r(42, 132, 4, 8, '#7a2010', 'tw-win'));
+  s.push(r(38, 122, 3, 5, '#ffb020', 'tw-lantern'));
+  s.push(r(44, 122, 3, 5, '#ff6b6b', 'tw-lantern'));
+  s.push(r(32, 122, 3, 5, '#ffd93d', 'tw-lantern'));
+
+  s.push(r(38, 108, 6, 4, '#f0d8a0'));
+  s.push(r(40, 106, 3, 3, '#2a2a2a'));
+  s.push(r(44, 108, 4, 2, '#e8b070', 'tw-cat-tail'));
+  s.push(r(39, 109, 1, 1, '#1a1a1a'));
+  s.push(r(42, 109, 1, 1, '#1a1a1a'));
+
+  s.push(r(56, 128, 14, 6, '#d82828'));
+  s.push(r(56, 134, 14, 14, '#3a2010'));
+  s.push(r(58, 136, 4, 4, '#ffe08a', 'tw-win'));
+  s.push(r(64, 136, 4, 4, '#ffb020', 'tw-lamp'));
+  s.push(r(70, 130, 12, 6, '#2040c8'));
+  s.push(r(70, 136, 12, 12, '#2a1a10'));
+  s.push(r(72, 138, 8, 4, '#ffe08a', 'tw-win'));
+  s.push(r(60, 124, 3, 5, '#ff6b6b', 'tw-lantern'));
+  s.push(r(66, 124, 3, 5, '#ffd93d', 'tw-lantern'));
+  s.push(r(74, 126, 3, 5, '#ff8ec8', 'tw-lantern'));
+
+  s.push(r(80, 128, 16, 20, '#4a2818'));
+  s.push(r(80, 126, 16, 4, '#c45a20'));
+  s.push(r(84, 132, 8, 6, '#ffe08a', 'tw-win'));
+  s.push(r(86, 122, 2, 4, '#d8d8d8', 'tw-smoke'));
+  s.push(r(88, 120, 2, 4, '#c0c0c0', 'tw-smoke', 'style="animation-delay:.6s"'));
+  s.push(r(84, 121, 2, 3, '#e8e8e8', 'tw-smoke', 'style="animation-delay:1.1s"'));
+
+  s.push(r(98, 126, 16, 22, '#fff0e8'));
+  s.push(r(98, 124, 16, 5, '#ff7a9a', 'tw-neon'));
+  s.push(r(102, 132, 8, 8, '#7ec8ff', 'tw-win'));
+  s.push(r(108, 128, 4, 4, '#39d353'));
+
+  s.push(r(116, 108, 8, 40, '#1a1028'));
+  s.push(r(118, 110, 4, 18, '#ff2ea6', 'tw-neon'));
+  s.push(r(118, 130, 4, 10, '#22e0ff', 'tw-neon', 'style="animation-delay:.4s"'));
+  s.push(r(124, 114, 6, 34, '#24183a'));
+  s.push(winGrid(126, 118, 2, 12, ['#ff2ea6', '#22e0ff'], 'tw-neon'));
+
+  s.push(r(134, 100, 12, 48, '#1a1430'));
+  s.push(r(136, 104, 8, 6, '#ff2ea6', 'tw-neon'));
+  s.push(r(136, 112, 8, 6, '#22e0ff', 'tw-neon', 'style="animation-delay:.3s"'));
+  s.push(r(136, 120, 8, 6, '#ffe14a', 'tw-neon', 'style="animation-delay:.7s"'));
+  s.push(r(146, 96, 16, 52, '#201838'));
+  s.push(winGrid(148, 100, 6, 20, ['#ff8ec8', '#7ec8ff', '#ffe08a'], 'tw-win'));
+  s.push(r(138, 116, 22, 8, '#203080'));
+  s.push(r(140, 118, 18, 4, '#ffe14a', 'tw-neon'));
+
+  s.push(r(182, 132, 16, 16, '#3a3a48'));
+  s.push(r(184, 134, 12, 6, '#39d353', 'tw-lamp'));
+  s.push(r(186, 142, 8, 6, '#7ec8ff', 'tw-win'));
+  s.push(r(188, 130, 4, 4, '#ffb020'));
+
+  s.push(r(170, 142, 14, 6, '#2a2a32'));
+  s.push(r(172, 138, 3, 8, '#ffcc33'));
+  s.push(r(176, 138, 3, 8, '#ffcc33'));
+  s.push(r(180, 138, 3, 8, '#39d353'));
+
+  s.push(r(8, 146, 8, 8, '#3a6a3a'));
+  s.push(r(9, 144, 6, 3, '#2a4a2a'));
+  s.push(r(10, 148, 4, 4, '#5a8a5a'));
+
+  s.push(r(0, 148, 320, 8, '#3a3a44'));
+  s.push(r(0, 156, 320, 10, '#2a2a32'));
+  s.push(r(0, 160, 320, 1, '#c9a227'));
+  s.push(r(12, 160, 8, 1, '#2a2a32'));
+  s.push(r(36, 160, 8, 1, '#2a2a32'));
+  s.push(r(60, 160, 8, 1, '#2a2a32'));
+  s.push(r(84, 160, 8, 1, '#2a2a32'));
+  s.push(r(108, 160, 8, 1, '#2a2a32'));
+  s.push(r(132, 160, 8, 1, '#2a2a32'));
+  s.push(r(156, 160, 8, 1, '#2a2a32'));
+  s.push(r(180, 160, 8, 1, '#2a2a32'));
+  s.push(r(204, 160, 8, 1, '#2a2a32'));
+  s.push(r(228, 160, 8, 1, '#2a2a32'));
+  s.push(r(252, 160, 8, 1, '#2a2a32'));
+  s.push(r(276, 160, 8, 1, '#2a2a32'));
+  s.push(r(300, 160, 8, 1, '#2a2a32'));
+
+  [[24,148,'#ffd36a'],[88,148,'#ffe08a'],[140,148,'#ffb020'],[200,148,'#ffe08a'],[260,148,'#ffd36a'],[310,148,'#ffe08a']].forEach(function(L, i){
+    s.push(r(L[0], 148, 2, 8, '#4a4a58'));
+    s.push(r(L[0] - 1, 146, 4, 3, L[2], 'tw-lamp', 'style="animation-delay:' + (i * 0.4) + 's"'));
+  });
+
+  s.push('<g class="tw-scooter">');
+  s.push(r(40, 154, 10, 4, '#39d353'));
+  s.push(r(42, 152, 4, 3, '#1a1a1a'));
+  s.push(r(40, 157, 3, 3, '#2a2a2a'));
+  s.push(r(48, 157, 3, 3, '#2a2a2a'));
+  s.push(r(50, 155, 2, 2, '#ffe08a', 'tw-beacon'));
+  s.push('</g>');
+  s.push('<g class="tw-scooter-b">');
+  s.push(r(90, 154, 10, 4, '#f4f4f4'));
+  s.push(r(92, 152, 4, 3, '#1a1a28'));
+  s.push(r(90, 157, 3, 3, '#2a2a2a'));
+  s.push(r(98, 157, 3, 3, '#2a2a2a'));
+  s.push(r(88, 155, 2, 2, '#ff4d4d', 'tw-beacon'));
+  s.push('</g>');
+
+  s.push(r(0, 166, 320, 14, 'url(#'+idPrefix+'-water)'));
+  s.push(r(208, 166, 4, 10, '#4a88c8', 'tw-river-glint'));
+  s.push(r(214, 168, 6, 8, '#5a98d0', 'tw-river-glint', 'style="animation-delay:.4s"'));
+  s.push(r(200, 170, 20, 6, '#3a78b8', 'tw-river-glint', 'style="animation-delay:.8s"'));
+  s.push(r(70, 168, 10, 4, '#4a88c8', 'tw-river-glint', 'style="animation-delay:1.1s"'));
+  s.push(r(140, 172, 16, 3, '#5a98d0', 'tw-river-glint', 'style="animation-delay:.2s"'));
+  s.push(r(260, 169, 12, 4, '#4a88c8', 'tw-river-glint', 'style="animation-delay:1.6s"'));
+
+  if(withHits){
+    TAIPEI_EGGS.forEach(function(egg){
+      s.push('<g class="tw-hit" data-egg="'+egg.id+'"><title>'+egg.title+'</title>');
+      s.push(r(egg.x, egg.y, egg.w, egg.h, 'transparent'));
+      s.push('</g>');
+    });
+  }
+  s.push('</svg>');
+  return s.join("");
+}
+
+function loadTaipeiEggs(){
+  try{ return JSON.parse(localStorage.getItem(TAIPEI_EGG_KEY) || "{}"); } catch(e){ return {}; }
+}
+function saveTaipeiEggs(found){
+  try{ localStorage.setItem(TAIPEI_EGG_KEY, JSON.stringify(found)); } catch(e){}
+}
+function taipeiEggTotal(){ return TAIPEI_EGGS.length + 1; }
+function taipeiFoundCount(found){
+  var n = found.plane ? 1 : 0;
+  TAIPEI_EGGS.forEach(function(egg){ if(found[egg.id]) n++; });
+  return n;
+}
+function allTaipeiEggsFound(found){
+  found = found || loadTaipeiEggs();
+  return taipeiFoundCount(found) >= taipeiEggTotal();
+}
+function paintTaipeiFound(root, found){
+  if(!root) return;
+  found = found || loadTaipeiEggs();
+  root.querySelectorAll("[data-egg]").forEach(function(hit){
+    if(found[hit.getAttribute("data-egg")]) hit.classList.add("found");
+  });
+}
+function collectTaipeiEgg(id){
+  var egg = null;
+  if(id === "plane"){
+    egg = { id:"plane", title:"Songshan departure", text:"Next stop: a policy seminar and a 14-hour layover. Keep the boarding pass." };
+  } else {
+    for(var i = 0; i < TAIPEI_EGGS.length; i++) if(TAIPEI_EGGS[i].id === id){ egg = TAIPEI_EGGS[i]; break; }
+  }
+  if(!egg) return;
+  var found = loadTaipeiEggs();
+  var first = !found[egg.id];
+  found[egg.id] = true;
+  saveTaipeiEggs(found);
+  var n = taipeiFoundCount(found);
+  var total = taipeiEggTotal();
+  var note = first ? " (" + n + "/" + total + ")" : " (already found, " + n + "/" + total + ")";
+  if(first && n >= total) note = " (" + n + "/" + total + ") 101 just went rainbow.";
+  alertBox(egg.title, egg.text + note);
+  document.querySelectorAll('[data-egg="'+egg.id+'"]').forEach(function(hit){ hit.classList.add("found"); });
+  if(egg.id === "bin") openWindow("bin");
+  if(egg.id === "tradesimple") openWindow("projects");
+  if(egg.id === "statecraft" || egg.id === "campaign") openWindow("experience");
+  if(egg.id === "research") openWindow("writing");
+  if(egg.id === "paperclip"){
+    var assistant = document.getElementById("assistant");
+    if(assistant){
+      document.getElementById("assistant-text").textContent = "It looks like you're sightseeing. I would recommend the pepper bun.";
+      assistant.classList.add("visible");
+    }
+  }
+  var scene = document.getElementById("taipei-scene");
+  if(n >= total){
+    if(scene) scene.classList.add("is-complete");
+    unlockAchievement("taipei-all");
+  }
+}
+
+function bindTaipeiHits(root){
+  if(!root || root._taipeiBound) return;
+  root._taipeiBound = true;
+  root.addEventListener("pointerdown", function(e){
+    var hit = e.target.closest ? e.target.closest("[data-egg]") : null;
+    if(hit) e.stopPropagation();
+  });
+  root.addEventListener("click", function(e){
+    var hit = e.target.closest ? e.target.closest("[data-egg]") : null;
+    if(!hit) return;
+    e.stopPropagation();
+    collectTaipeiEgg(hit.getAttribute("data-egg"));
+  });
+}
+
+function ensureTaipeiScene(){
+  var scene = document.getElementById("taipei-scene");
+  if(!scene) return;
+  if(!scene.querySelector("svg")) scene.innerHTML = buildTaipeiSVG(true, "tw");
+  paintTaipeiFound(scene);
+  bindTaipeiHits(scene);
+  if(allTaipeiEggsFound()) scene.classList.add("is-complete");
+}
+
+function setTaipeiWallpaper(on){
+  var scene = document.getElementById("taipei-scene");
+  if(!scene) return;
+  if(!on){
+    scene.hidden = true;
+    scene.classList.remove("is-live");
+    scene.setAttribute("aria-hidden", "true");
+    return;
+  }
+  ensureTaipeiScene();
+  scene.hidden = false;
+  scene.setAttribute("aria-hidden", "false");
+  if(!reducedMotion) scene.classList.add("is-live");
+  else scene.classList.remove("is-live");
+  if(allTaipeiEggsFound()) scene.classList.add("is-complete");
+}
+
+function setTaipeiPreview(on){
+  var preview = document.getElementById("disp-preview-taipei");
+  if(!preview) return;
+  if(!on){
+    preview.hidden = true;
+    preview.classList.remove("is-live");
+    return;
+  }
+  if(!preview.querySelector("svg")) preview.innerHTML = buildTaipeiSVG(false, "twp");
+  preview.hidden = false;
+  if(!reducedMotion) preview.classList.add("is-live");
+}
+
 var WALLPAPERS = {
   sky: {
     label:"Sky & Clouds",
@@ -1769,6 +2200,11 @@ var WALLPAPERS = {
   teal: {
     label:"Classic Teal",
     css:"var(--desktop-teal)"
+  },
+  taipei: {
+    label:"Taipei After Hours",
+    type:"scene",
+    css: TAIPEI_SWATCH
   }
 };
 
@@ -1776,11 +2212,19 @@ var WALLPAPER_KEY = "joshuaos-wallpaper";
 var currentWallpaper = "teal";
 try{ var savedWp = localStorage.getItem(WALLPAPER_KEY); if(savedWp && WALLPAPERS[savedWp]) currentWallpaper = savedWp; } catch(e){}
 
+function wallpaperBackground(wp){
+  if(!wp) return "";
+  return wp.css;
+}
+
 function applyWallpaper(key){
   if(!WALLPAPERS[key]) return;
-  document.getElementById("desktop").style.background = WALLPAPERS[key].css;
+  var wp = WALLPAPERS[key];
+  document.getElementById("desktop").style.background = wallpaperBackground(wp);
+  setTaipeiWallpaper(wp.type === "scene");
   currentWallpaper = key;
 }
+
 applyWallpaper(currentWallpaper);
 
 (function(){
@@ -1800,6 +2244,13 @@ applyWallpaper(currentWallpaper);
   var listWrap = document.getElementById("disp-wallpaper-list");
   var pendingWallpaper = currentWallpaper;
 
+  function previewWallpaper(key){
+    var wp = WALLPAPERS[key];
+    if(!wp) return;
+    previewScreen.style.background = wallpaperBackground(wp);
+    setTaipeiPreview(wp.type === "scene");
+  }
+
   function renderWallpaperList(){
     listWrap.innerHTML = "";
     Object.keys(WALLPAPERS).forEach(function(key){
@@ -1807,27 +2258,47 @@ applyWallpaper(currentWallpaper);
       var item = document.createElement("button");
       item.type = "button";
       item.className = "disp-wp-item" + (key === pendingWallpaper ? " active" : "");
-      item.innerHTML = '<span class="disp-wp-swatch" style="background:' + wp.css + ';"></span><span>' + wp.label + "</span>";
+      item.innerHTML = '<span class="disp-wp-swatch" style="background:' + wallpaperBackground(wp) + ';"></span><span>' + wp.label + (wp.type === "scene" ? " \u2605" : "") + "</span>";
       item.addEventListener("click", function(){
         pendingWallpaper = key;
-        previewScreen.style.background = wp.css;
+        previewWallpaper(key);
         listWrap.querySelectorAll(".disp-wp-item").forEach(function(el){ el.classList.remove("active"); });
         item.classList.add("active");
+      });
+      item.addEventListener("dblclick", function(){
+        pendingWallpaper = key;
+        previewWallpaper(key);
+        commitWallpaper();
       });
       listWrap.appendChild(item);
     });
   }
   renderWallpaperList();
-  previewScreen.style.background = WALLPAPERS[currentWallpaper].css;
+  previewScreen.style.background = wallpaperBackground(WALLPAPERS[currentWallpaper]);
+  if(currentWallpaper === "taipei") setTaipeiPreview(true);
 
   function commitWallpaper(){
     applyWallpaper(pendingWallpaper);
     try{ localStorage.setItem(WALLPAPER_KEY, pendingWallpaper); } catch(e){}
+    if(pendingWallpaper === "taipei") unlockAchievement("taipei");
   }
+  window.syncWallpaperPicker = function(key){
+    if(key && WALLPAPERS[key]) pendingWallpaper = key;
+    renderWallpaperList();
+    previewWallpaper(pendingWallpaper);
+  };
+  window.commitNamedWallpaper = function(key){
+    if(!WALLPAPERS[key]) return;
+    pendingWallpaper = key;
+    renderWallpaperList();
+    previewWallpaper(key);
+    commitWallpaper();
+  };
   document.getElementById("disp-apply").addEventListener("click", commitWallpaper);
   document.getElementById("disp-ok").addEventListener("click", function(){
     commitWallpaper();
     closeWindow("display");
+    setTaipeiPreview(false);
   });
 
   var ssToggle = document.getElementById("ss-enabled-toggle");
@@ -1841,8 +2312,6 @@ applyWallpaper(currentWallpaper);
     closeWindow("display");
     setTimeout(triggerScreensaver, 260);
   });
-  /* the Appearance tab has no JS of its own. it's static copy that
-     says so, on purpose (see the markup above). */
 })();
 
 /* ============================================================
@@ -2129,12 +2598,14 @@ function showPlain(){
   finishBoot(false);
   plainView.classList.add("visible");
   desktopEl.style.display = "none";
+  setTaipeiWallpaper(false);
   var back = document.getElementById("plain-view-back");
   if(back) back.focus();
 }
 function hidePlain(){
   plainView.classList.remove("visible");
   desktopEl.style.display = "";
+  applyWallpaper(currentWallpaper);
 }
 document.getElementById("skip-to-plain").addEventListener("click", function(e){ e.preventDefault(); showPlain(); });
 document.getElementById("plain-view-toggle").addEventListener("click", function(e){ e.preventDefault(); showPlain(); });
@@ -2190,6 +2661,7 @@ function triggerScreensaver(){
     });
   }
   ss.hidden = false;
+  setTaipeiWallpaper(false);
 
   function tick(){
     var w = window.innerWidth, h = window.innerHeight;
@@ -2215,6 +2687,7 @@ function dismissScreensaver(){
   ssFrame = null;
   ss.innerHTML = "";
   unlockAchievement("screensaver"); /* awarded on return, so the toast is actually seen */
+  if(typeof applyWallpaper === "function") applyWallpaper(currentWallpaper);
 }
 
 ["mousemove", "mousedown", "keydown", "touchstart", "scroll"].forEach(function(evt){
@@ -2753,7 +3226,9 @@ var ACHIEVEMENTS = {
   "mine-win":    { title:"Achievement unlocked", text:"\u{1F3C6} Swept clean. Beat Minesweeper on a résumé site." },
   "konami":      { title:"Cheat mode activated", text:"\u{1F3C6} +30 lives. They cannot be used for anything." },
   "screensaver": { title:"Achievement unlocked", text:"\u{1F3C6} Left long enough for the screensaver. Welcome back." },
-  "clip-deny":   { title:"Achievement unlocked", text:"\u{1F3C6} Declined help from a paperclip. Historically accurate." }
+  "clip-deny":   { title:"Achievement unlocked", text:"\u{1F3C6} Declined help from a paperclip. Historically accurate." },
+  "taipei":      { title:"Achievement unlocked", text:"\u{1F3C6} After hours in Taipei. Pixel skyline, analog heart." },
+  "taipei-all":  { title:"Skyline complete", text:"\u{1F3C6} Every secret in the city. 101 went rainbow." }
 };
 var ACH_KEY = "joshuaos-achievements";
 
