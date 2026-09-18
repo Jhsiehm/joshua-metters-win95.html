@@ -691,7 +691,6 @@ a{color:var(--link);}
 }
 .taipei-scene .tw-hit{pointer-events:auto;cursor:pointer;}
 .taipei-scene .tw-hit rect{fill:rgba(255,255,255,.001);}
-.taipei-scene .tw-hit.found rect{fill:rgba(255,214,80,.16);}
 .taipei-scene.is-live .tw-star{animation:tw-twinkle 2.6s ease-in-out infinite;}
 .taipei-scene.is-live .tw-win{animation:tw-flicker 3.8s steps(1) infinite;}
 .taipei-scene.is-live .tw-win-101{animation:tw-flicker 2.8s steps(1) infinite;}
